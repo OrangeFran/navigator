@@ -26,7 +26,8 @@ fn main() {
 
     let mut search_widget = SearchWidget::new();
     let mut list_widget = ListWidget::new(Type::Folder(
-        vec![("Hallo".to_string(), Type::Single), ("Hallo".to_string(), Type::Single)]
+        vec![("Hallo".to_string(), Type::Single), ("Hallo".to_string(), Type::Single),
+        ("Folder".to_string(), Type::Folder(vec![("Hallo".to_string(), Type::Single)]))]
     ));
 
     // draw the layout for the first time
@@ -71,6 +72,14 @@ fn main() {
                 }
                 Event::Key(Key::Down) | Event::Key(Key::Char('j')) => {
                     list_widget.scroll(Direction::Down);
+                }
+                // expand an element
+                Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
+                    list_widget.expand();
+                }
+                // expand an element
+                Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
+                    list_widget.back();
                 }
                 // switch to search widget
                 Event::Key(Key::Char('/')) => {

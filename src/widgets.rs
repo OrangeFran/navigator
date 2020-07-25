@@ -122,6 +122,41 @@ impl ListWidget {
         Self::new(content)
     }
 
+    // expand -> enter a folder
+    pub fn expand(&mut self) {
+        // check if the element is actually expandable 
+        let current_element = self.current[self.selected].clone();
+        if let Type::Folder(new) = current_element.1 {
+            // update .current and .path
+            self.current = new;
+            self.path.push(current_element.0);
+            // set the selected one to 0
+            // to prevent index errors
+            self.selected = 0;
+        }
+    }
+
+    // the opposite to expand
+    pub fn back(&mut self) {
+        // remove the last element from path 
+        self.path.pop();
+        let mut new = self.all.unwrap();
+        let mut match_name = |name| {
+            for (n, t) in &new {
+                if name == n {
+                    new = t.unwrap();
+                    return;
+                }
+            }
+        };
+        for name in &self.path {
+            match_name(name);
+        }
+        // update .current and .selected
+        self.current = new;
+        self.selected = 0;
+    }
+
     // scroll up/down
     pub fn scroll(&mut self, direction: Direction) {
         match direction {
