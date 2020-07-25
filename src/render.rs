@@ -1,3 +1,4 @@
+use super::widgets::Widget;
 use super::widgets::{ListWidget, SearchWidget, Selectable};
 
 use tui::backend::Backend;
@@ -5,7 +6,7 @@ use tui::terminal::Terminal;
 
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Text, Block, Borders, List, ListState, Paragraph};
+use tui::widgets::{Block, Borders, List, ListState, Paragraph};
 
 // draws the layout to the terminal
 // this function gets called everytime something changes
@@ -26,35 +27,48 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
             .split(f.size());
 
         // the search bar
-        f.render_widget(
-            Paragraph::new(
-                    vec![Text::raw("It works!")].iter()
-                )
-                .block(
-                    Block::default().borders(Borders::ALL).title(" Search ")
-                )
-                .style(Style::default().fg(Color::White))
-                .alignment(Alignment::Left)
-                .wrap(true),
-            chunks[0]
-        );
+        let search_widget_content = search_widget.display();
+        let mut search_widget_paragraph = Paragraph::new(search_widget_content.iter())
+            .block(
+                Block::default().borders(Borders::ALL).title(" Search ")
+            )
+            .style(Style::default().fg(Color::White))
+            .alignment(Alignment::Left)
+            .wrap(true);
+
 
         // the scrollable list view
-        let mut list_state = ListState::default();
-        list_state.select(Some(list_widget.selected));
-        f.render_stateful_widget(
-            List::new(
-                vec![Text::raw("It works!")].into_iter()
+        let mut list_widget_state = ListState::default();
+       
+        let list_widget_content = list_widget.display();
+        let mut list_widget_paragraph = List::new(list_widget_content.into_iter())
+            .block(
+                Block::default().borders(Borders::ALL).title(" List ")
             )
-                .block(
-                    Block::default().borders(Borders::ALL).title(" List ")
-                )
-                .highlight_style(
-                    Style::default().modifier(Modifier::BOLD)
-                )
-                .highlight_symbol(">"),
-            chunks[1],
-            &mut list_state
-        );
-    });
+            .highlight_style(
+                Style::default().modifier(Modifier::BOLD)
+            )
+            .highlight_symbol(">");
+
+        // highlight the current selected widget
+        match selected {
+            Selectable::Search => {
+                search_widget_paragraph = search_widget_paragraph.block(
+                    Block::default().title(" Search ")
+                        .borders(Borders::ALL).border_style(Style::default().fg(Color::Red))
+                );
+            }
+            Selectable::List => {
+                list_widget_paragraph = list_widget_paragraph.block(
+                    Block::default().title(" List ")
+                        .borders(Borders::ALL).border_style(Style::default().fg(Color::Red))
+                );
+                list_widget_state.select(Some(list_widget.selected));
+            }
+        }
+
+        // render all the widgets
+        f.render_widget(search_widget_paragraph.clone(), chunks[0]);
+        f.render_stateful_widget(list_widget_paragraph.clone(), chunks[1], &mut list_widget_state);
+    }).unwrap();
 }

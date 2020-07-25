@@ -62,6 +62,10 @@ fn main() {
                     Event::Key(Key::Down) | Event::Key(Key::Char('j')) => {
                         list_widget.scroll(Direction::Down);
                     }
+                    // switch to search widget
+                    Event::Key(Key::Char('/')) => {
+                        selected = Selectable::Search;
+                    }
                     // quit the program
                     Event::Key(Key::Char('q')) => {
                         terminal.clear().expect("Failed to clear the terminal");

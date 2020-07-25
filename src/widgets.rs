@@ -12,13 +12,26 @@ pub enum Selectable {
  * with Paragraphs, Lists and more creations of the
  * tui crete.
  */
-trait Widget {
+pub trait Widget {
     fn display(&self) -> Vec<Text>;
 }
 
+#[derive(Clone)]
 pub enum Type {
     Folder(Vec<(String, Type)>), /* allows unlimited expands */
     Single /* A single and not expandable object */
+}
+
+impl Type {
+    /* return the content
+     * of Type::Folder or panic.
+     */
+    pub fn unwrap(&self) -> Vec<(String, Type)> {
+        match self {
+            Self::Folder(vec) => vec.to_vec(),
+            Self::Single => panic!("failed to unwrap")
+        }
+    }
 }
 
 /* Directions
@@ -58,28 +71,28 @@ impl SearchWidget {
 }
 
 pub struct ListWidget {
-    content: Type, /* represents all elements (name and expandability) */
+    all: Type, /* represents all elements (name and expandability) */
+    path: Vec<String>, /* specifies the path from self.all to self.current */
+    current: Vec<(String, Type)>, /* the list the user is currently in */
     pub selected: usize /* represents the currently selected element */
 }
 
 impl Widget for ListWidget {
     fn display(&self) -> Vec<Text> {
-        /* self.content.map(|fold| {
-            let new_vec = match vec {
-                Type::Folder(c) => c,
-                Type::Single => panic!("Something failed!")
-            };
-            // ... 
-        }).collect::<Vec<Text>>() */
-        vec![Text::raw("Hehe")]
+        self.current.iter().map(|(name, t)| {
+            Text::raw(name)
+        }).collect::<Vec<Text>>()
     }
 }
 
 impl ListWidget {
-    pub fn new(vec: Type) -> Self {
-        return Self {
-            content: vec,
-            selected: 0 } 
+    pub fn new(t: Type) -> Self {
+        Self {
+            all: t.clone(),
+            path: Vec::new(),
+            current: t.unwrap(),
+            selected: 0
+        } 
     }
 
     pub fn from_string(string: String) -> Self {
@@ -98,16 +111,16 @@ impl ListWidget {
             // scroll up, and if
             // your're already at the top, nothing happends
             Direction::Up => {
-                // if self.selected > 0 {
-                self.selected -= 1;
-                // }
+                if self.selected > 0 {
+                    self.selected -= 1;
+                }
             }
             // scroll up, and 
             // if your're already at the bottom, nothing happens
             Direction::Down => {
-                // if self.selected < self.content.len() {
-                self.selected += 1;
-                // }
+                if self.selected < self.current.len() {
+                    self.selected += 1;
+                }
             }
         }
     }
