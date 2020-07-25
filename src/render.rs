@@ -20,7 +20,7 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
             .margin(0)
             .constraints(
                 [
-                    Constraint::Percentage(10),
+                    Constraint::Length(3),
                     Constraint::Percentage(90)
                 ].as_ref()
             )
@@ -48,7 +48,7 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
             .highlight_style(
                 Style::default().modifier(Modifier::BOLD)
             )
-            .highlight_symbol(">");
+            .highlight_symbol("> ");
 
         // highlight the current selected widget
         match selected {
