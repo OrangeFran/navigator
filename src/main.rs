@@ -1,5 +1,8 @@
 mod widgets;
-use widgets::draw;
+mod render;
+
+use widgets::{Type, Direction};
+use widgets::{Selectable, ListWidget, SearchWidget};
 
 use std::io::{stdin, stdout};
 
@@ -18,7 +21,12 @@ fn main() {
 
     terminal.hide_cursor().expect("Failed to hide the cursor");
     terminal.clear().expect("Failed to clear the terminal");
-    
+   
+    let mut selected = Selectable::List;
+
+    let mut search_widget = SearchWidget::new();
+    let mut list_widget = ListWidget::new(Type::Folder(vec![("Hallo".to_string(), Type::Single)]));
+
     // wait for input events
     for event in stdin().events() {
         // if the program failed
@@ -26,18 +34,46 @@ fn main() {
         if event.is_err() {
             continue;
         }
+    
+        match selected {
+            Selectable::Search => match event.unwrap() {
+                // add the char to the search
+                Event::Key(Key::Char(c)) => {
+                    search_widget.add(c);
+                }
+                // remove the last char from the search
+                Event::Key(Key::Backspace) => {
+                    search_widget.pop();
+                }
+                // switch back to the list view
+                Event::Key(Key::Esc) => {
+                    selected = Selectable::List;
+                }
 
-        match event.unwrap() {
-            // quit the program
-            Event::Key(Key::Char('q')) => {
-                terminal.clear().expect("Failed to clear the terminal");
-                break;
+                _ => {}
             }
+            Selectable::List => {
+                match event.unwrap() {
+                    // move up/down/left/right
+                    // with the arrow or vim keys
+                    Event::Key(Key::Up) | Event::Key(Key::Char('k')) => {
+                        list_widget.scroll(Direction::Up);
+                    }
+                    Event::Key(Key::Down) | Event::Key(Key::Char('j')) => {
+                        list_widget.scroll(Direction::Down);
+                    }
+                    // quit the program
+                    Event::Key(Key::Char('q')) => {
+                        terminal.clear().expect("Failed to clear the terminal");
+                        break;
+                    }
 
-            _ => {}
-        } 
+                    _ => {}
+                }
+            }
+        }
 
         // draw/update the tui
-        draw(&mut terminal, vec![("Hallo".to_string(), true)])
+        render::draw(&mut terminal, &list_widget, &search_widget, &selected);
     }
 }
