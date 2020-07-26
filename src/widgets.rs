@@ -90,7 +90,7 @@ impl Widget for ListWidget {
             // filter out all the names
             // that do not match with self.search
             if !self.search.is_empty() {
-                if name == &self.search {
+                if name.contains(&self.search) {
                     vec.push(Text::raw(name));
                 }
             } else {
@@ -179,6 +179,10 @@ impl ListWidget {
 
     pub fn get(&self) -> String {
         self.current[self.selected].0.clone()
+    }
+
+    pub fn get_path(&self) -> String {
+        self.path.join("/") 
     }
 
     pub fn apply_search(&mut self, keyword: String) {

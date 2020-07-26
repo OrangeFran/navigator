@@ -41,9 +41,10 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
         let mut list_widget_state = ListState::default();
        
         let list_widget_content = list_widget.display();
-        let mut list_widget_paragraph = List::new(list_widget_content.into_iter())
+        let list_widget_title = format!(" {} ", list_widget.get_path());
+        let mut list_widget_list = List::new(list_widget_content.into_iter())
             .block(
-                Block::default().borders(Borders::ALL).title(" List ")
+                Block::default().borders(Borders::ALL).title(list_widget_title.as_str())
             )
             .highlight_style(
                 Style::default().modifier(Modifier::BOLD)
@@ -59,8 +60,8 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
                 );
             }
             Selectable::List => {
-                list_widget_paragraph = list_widget_paragraph.block(
-                    Block::default().title(" List ")
+                list_widget_list = list_widget_list.block(
+                    Block::default().title(list_widget_title.as_str())
                         .borders(Borders::ALL).border_style(Style::default().fg(Color::Red))
                 );
                 list_widget_state.select(Some(list_widget.selected));
@@ -69,6 +70,6 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
 
         // render all the widgets
         f.render_widget(search_widget_paragraph.clone(), chunks[0]);
-        f.render_stateful_widget(list_widget_paragraph.clone(), chunks[1], &mut list_widget_state);
+        f.render_stateful_widget(list_widget_list.clone(), chunks[1], &mut list_widget_state);
     }).unwrap();
 }
