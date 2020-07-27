@@ -27,7 +27,7 @@ fn main() {
     let mut search_widget = SearchWidget::new();
     let mut list_widget = ListWidget::new(Type::Folder(
         vec![("Hallo".to_string(), Type::Single), ("Hallo".to_string(), Type::Single),
-        ("Folder".to_string(), Type::Folder(vec![("Hallo".to_string(), Type::Single)]))]
+        ("Folder".to_string(), Type::Folder(vec![("Hallo".to_string(), Type::Folder(vec![("Two".to_string(), Type::Single)]))]))]
     ));
 
     // draw the layout for the first time

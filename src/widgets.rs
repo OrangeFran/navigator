@@ -87,14 +87,16 @@ impl Widget for ListWidget {
     fn display(&self) -> Vec<Text> {
         let mut vec = Vec::new();
         for (name, t) in &self.current {
+            // add icons for better visbility
+            let elem = match t {
+                Type::Folder(_) => Text::raw(format!("{}{}", "  ", name)),
+                Type::Single => Text::raw(format!("   {}", name))
+            };
+            
             // filter out all the names
             // that do not match with self.search
-            if !self.search.is_empty() {
-                if name.contains(&self.search) {
-                    vec.push(Text::raw(name));
-                }
-            } else {
-                vec.push(Text::raw(name));
+            if self.search.is_empty() || name.contains(&self.search) {
+                vec.push(elem);
             }
         }
         vec
@@ -113,6 +115,8 @@ impl ListWidget {
     }
 
     pub fn from_string(string: String) -> Self {
+        // first, try with \t
+        // custom seperators are coming
         let content = Type::Folder(
             vec![
                 ("One".to_string(), Type::Single),
