@@ -17,18 +17,26 @@ pub trait Widget {
 
 #[derive(Clone)]
 pub enum Type {
-    Folder(Vec<(String, Type)>), // allows unlimited expands
-    Single // A single and not expandable object
+    Folder(Vec<(String, Type)>), // folder -> allows unlimited expands
+    Single // single -> not expandable object
 }
 
 impl Type {
     // return the content
     // of Type::Folder or panic.
-    pub fn unwrap(&self) -> Vec<(String, Type)> {
+    pub fn unwrap(&self) -> Vec<(String, Self)> {
         match self {
             Self::Folder(vec) => vec.to_vec(),
             Self::Single => panic!("failed to unwrap")
         }
+    }
+    // add an entry at the specifed path
+    pub fn add(&mut self, entry: (String, Self), path: Vec<String>) {
+        let mut current = self;
+        for p in path {
+            current = current.unwrap 
+        }
+
     }
 }
 
@@ -117,6 +125,13 @@ impl ListWidget {
     pub fn from_string(string: String) -> Self {
         // first, try with \t
         // custom seperators are coming
+        let mut vec = Vec::new();
+        for line in string.split('\n') {
+            // check if it starts with \t
+            if let Some('\t') = line.chars().next() {
+                  
+            }
+        }
         let content = Type::Folder(
             vec![
                 ("One".to_string(), Type::Single),
