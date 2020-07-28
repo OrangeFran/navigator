@@ -1,7 +1,7 @@
 mod widgets;
 mod render;
 
-use widgets::{Type, Direction};
+use widgets::{Entry, Direction};
 use widgets::{Selectable, ListWidget, SearchWidget};
 
 use std::io::{stdin, stdout};
@@ -25,10 +25,11 @@ fn main() {
     let mut selected = Selectable::List;
 
     let mut search_widget = SearchWidget::new();
-    let mut list_widget = ListWidget::new(Type::Folder(
-        vec![("Hallo".to_string(), Type::Single), ("Hallo".to_string(), Type::Single),
-        ("Folder".to_string(), Type::Folder(vec![("Hallo".to_string(), Type::Folder(vec![("Two".to_string(), Type::Single)]))]))]
-    ));
+    let mut list_widget = ListWidget::new(vec![
+        Entry { name: "folder".to_string(), next: Some(vec![
+            Entry { name: "folder".to_string(), next: None }
+        ])}
+    ]);
 
     // draw the layout for the first time
     render::draw(&mut terminal, &list_widget, &search_widget, &selected);
@@ -89,7 +90,7 @@ fn main() {
                 Event::Key(Key::Char('\n')) => {
                     terminal.clear().expect("Failed to clear the terminal");
                     // raw.suspend_raw_mode();
-                    println!("{}", list_widget.get());
+                    println!("{}", list_widget.get_name());
                     break;
                 }
                 // quit the program

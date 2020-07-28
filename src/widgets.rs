@@ -16,27 +16,19 @@ pub trait Widget {
 }
 
 #[derive(Clone)]
-pub enum Type {
-    Folder(Vec<(String, Type)>), // folder -> allows unlimited expands
-    Single // single -> not expandable object
+pub struct Entry {
+    pub name: String, // gets displayed
+    pub next: Option<Vec<Entry>> // the subdirectory
 }
 
-impl Type {
-    // return the content
-    // of Type::Folder or panic.
-    pub fn unwrap(&self) -> Vec<(String, Self)> {
-        match self {
-            Self::Folder(vec) => vec.to_vec(),
-            Self::Single => panic!("failed to unwrap")
+impl Entry {
+    // follow the .next to the next entry
+    // and return it / panic
+    pub fn follow(&self) -> Vec<Self> {
+        match &self.next {
+            Some(subdir) => subdir.to_vec(),
+            None => panic!("could not call .follow(): no subdirectory") 
         }
-    }
-    // add an entry at the specifed path
-    pub fn add(&mut self, entry: (String, Self), path: Vec<String>) {
-        let mut current = self;
-        for p in path {
-            current = current.unwrap 
-        }
-
     }
 }
 
@@ -84,9 +76,9 @@ impl SearchWidget {
 }
 
 pub struct ListWidget {
-    all: Type, // represents all elements (name and expandability)
+    all: Entry, // represents all elements
     path: Vec<String>, // specifies the path from self.all to self.current
-    current: Vec<(String, Type)>, // the list the user is currently in
+    current: Vec<Entry>, // the list the user is currently in
     pub selected: usize, // represents the currently selected element
     search: String // store the search keywords (get used in .display)
 }
@@ -94,16 +86,16 @@ pub struct ListWidget {
 impl Widget for ListWidget {
     fn display(&self) -> Vec<Text> {
         let mut vec = Vec::new();
-        for (name, t) in &self.current {
+        for entry in &self.current {
             // add icons for better visbility
-            let elem = match t {
-                Type::Folder(_) => Text::raw(format!("{}{}", "  ", name)),
-                Type::Single => Text::raw(format!("   {}", name))
+            let elem = match entry.next {
+                Some(_) => Text::raw(format!("{}{}", "  ", entry.name)),
+                None => Text::raw(format!("   {}", entry.name))
             };
             
             // filter out all the names
             // that do not match with self.search
-            if self.search.is_empty() || name.contains(&self.search) {
+            if self.search.is_empty() || entry.name.contains(&self.search) {
                 vec.push(elem);
             }
         }
@@ -112,11 +104,22 @@ impl Widget for ListWidget {
 }
 
 impl ListWidget {
-    pub fn new(t: Type) -> Self {
+    pub fn new(v: Vec<Entry>) -> Self {
+        // abort if v has no entries
+        if v.is_empty() {
+            panic!("no content");
+        }
+
+        // create the root and connect the entries
+        let all = Entry {
+            name: "/".to_string(),
+            next: Some(v.clone())
+        };
+
         Self {
-            all: t.clone(),
+            all: all,
             path: Vec::new(),
-            current: t.unwrap(),
+            current: v,
             selected: 0,
             search: String::new()
         } 
@@ -125,30 +128,23 @@ impl ListWidget {
     pub fn from_string(string: String) -> Self {
         // first, try with \t
         // custom seperators are coming
-        let mut vec = Vec::new();
+        let mut vec: Vec<Entry> = Vec::new();
+        let mut index = 0;
         for line in string.split('\n') {
             // check if it starts with \t
-            if let Some('\t') = line.chars().next() {
-                  
-            }
+            if let Some('\t') = line.chars().next() {}
         }
-        let content = Type::Folder(
-            vec![
-                ("One".to_string(), Type::Single),
-                ("Two".to_string(), Type::Single)
-            ]
-        );
-        Self::new(content)
+        Self::new(vec)
     }
 
     // expand -> enter a folder
     pub fn expand(&mut self) {
         // check if the element is actually expandable 
         let current_element = self.current[self.selected].clone();
-        if let Type::Folder(new) = current_element.1 {
+        if let Some(new) = current_element.next {
             // update .current and .path
             self.current = new;
-            self.path.push(current_element.0);
+            self.path.push(current_element.name);
             // set the selected one to 0
             // to prevent index errors
             self.selected = 0;
@@ -159,11 +155,11 @@ impl ListWidget {
     pub fn back(&mut self) {
         // remove the last element from path 
         self.path.pop();
-        let mut new = self.all.unwrap();
+        let mut new = self.all.follow();
         let mut match_name = |name| {
-            for (n, t) in &new {
-                if name == n {
-                    new = t.unwrap();
+            for n in &new {
+                if name == &n.name {
+                    new = n.follow();
                     return;
                 }
             }
@@ -196,12 +192,12 @@ impl ListWidget {
         }
     }
 
-    pub fn get(&self) -> String {
-        self.current[self.selected].0.clone()
+    pub fn get_name(&self) -> String {
+        self.current[self.selected].name.clone()
     }
 
     pub fn get_path(&self) -> String {
-        self.path.join("/") 
+        format!("/{}", self.path.join("/"))
     }
 
     pub fn apply_search(&mut self, keyword: String) {
