@@ -128,12 +128,46 @@ impl ListWidget {
     pub fn from_string(string: String) -> Self {
         // first, try with \t
         // custom seperators are coming
-        let mut vec: Vec<Entry> = Vec::new();
-        let mut index = 0;
+        let mut vec: Vec<Vec<(String, Option<usize>)>> = vec![Vec::new()];
+        let mut current, previous, next, into = 0;
+    
+        // checks for identifiers and returns 
+        // how many it found
+        let find_identifiers = |s| -> usize {
+            let count = 0;
+            let all_chars = line.chars();
+            loop {
+                if let Some('\t') = all_chars.next() {
+                    count += 1;
+                    continue;
+                }
+                break count;
+            } 
+        };
+
+        let count_idents_previous, count_idents_current, count_idents_next = 0;
+
         for line in string.split('\n') {
             // check if it starts with \t
-            if let Some('\t') = line.chars().next() {}
+            // and with how many \t's
+            let count_idents_previous = count_idents_current; 
+            let count_idents_current = count_idents_next; 
+            let count_idents_next = find_identifiers(line); 
+
+            if count_idents_current == into {
+                // find out if the Entry has a subdirectory or not
+                if count_idents_next > count_idents_current {
+                    // add a new subdirectory and save the index
+                    // as Some(index) in the current vectory
+                    vec.push(Vec::new());
+                    vec[current].push((line, Some(vec.len() - 1)));
+                // ...
+                } else if count_idents_next < count_idents_current {
+                    // vec[
+                }
+            }
         }
+
         Self::new(vec)
     }
 
