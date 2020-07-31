@@ -15,19 +15,22 @@ pub trait Widget {
     fn display(&self) -> Vec<Text>;
 }
 
+// a default entry with a name
+// and an option for a subdirectory
+//
+// the options holds a number which refers
+// to the index where it it stored
 #[derive(Clone)]
 pub struct Entry {
-    pub name: String, // gets displayed
-    pub next: Option<Vec<Entry>> // the subdirectory
+    name: String,
+    next: Option<usize>
 }
 
 impl Entry {
-    // follow the .next to the next entry
-    // and return it / panic
-    pub fn follow(&self) -> Vec<Self> {
-        match &self.next {
-            Some(subdir) => subdir.to_vec(),
-            None => panic!("could not call .follow(): no subdirectory") 
+    pub fn new(n: String, nx: Option<usize>) -> Self {
+        Self {
+            name: n,
+            next: nx
         }
     }
 }
@@ -76,9 +79,8 @@ impl SearchWidget {
 }
 
 pub struct ListWidget {
-    all: Entry, // represents all elements
-    path: Vec<String>, // specifies the path from self.all to self.current
-    current: Vec<Entry>, // the list the user is currently in
+    all: Vec<Vec<Entry>>, // represents all elements
+    path: Vec<(String, usize)>, // specifies the path the users is currently in
     pub selected: usize, // represents the currently selected element
     search: String // store the search keywords (get used in .display)
 }
@@ -86,7 +88,7 @@ pub struct ListWidget {
 impl Widget for ListWidget {
     fn display(&self) -> Vec<Text> {
         let mut vec = Vec::new();
-        for entry in &self.current {
+        for entry in &self.get_current_folder() {
             // add icons for better visbility
             let elem = match entry.next {
                 Some(_) => Text::raw(format!("{}{}", "  ", entry.name)),
@@ -104,81 +106,118 @@ impl Widget for ListWidget {
 }
 
 impl ListWidget {
-    pub fn new(v: Vec<Entry>) -> Self {
+    // simply populate a basic
+    // ListWidget with default values
+    pub fn new(all: Vec<Vec<Entry>>) -> Self {
         // abort if v has no entries
-        if v.is_empty() {
+        if all.is_empty() {
             panic!("no content");
         }
 
-        // create the root and connect the entries
-        let all = Entry {
-            name: "/".to_string(),
-            next: Some(v.clone())
-        };
-
         Self {
             all: all,
-            path: Vec::new(),
-            current: v,
+            path: vec![("".to_string(), 0)],
             selected: 0,
             search: String::new()
         } 
     }
 
+    // converts the given string to a ListWidget    
+    // this is probably the holy method, that makes this project something usable
     pub fn from_string(string: String) -> Self {
         // first, try with \t
         // custom seperators are coming
-        let mut vec: Vec<Vec<(String, Option<usize>)>> = vec![Vec::new()];
-        let mut current, previous, next, into = 0;
+        let mut tuple_vec: Vec<Vec<Entry>> = vec![vec![]];
     
         // checks for identifiers and returns 
         // how many it found
-        let find_identifiers = |s| -> usize {
-            let count = 0;
-            let all_chars = line.chars();
-            loop {
-                if let Some('\t') = all_chars.next() {
-                    count += 1;
-                    continue;
+        let find_identifiers = |line: String| -> usize {
+            for (i, c) in line.chars().enumerate() {
+                if c != '\t' {
+                    return i;
                 }
-                break count;
-            } 
+            }
+            // default value of zero
+            return 0;
         };
+        
+        // stores the path in indexes to the current index
+        // so the code can jump back into previous folders
+        let mut path = Vec::new(); 
 
-        let count_idents_previous, count_idents_current, count_idents_next = 0;
+        // stores the current index
+        let mut current = 0;
+        // used to compare identifiers
+        let (mut count_idents_current, mut count_idents_next) = (0, 0);
+    
+        let mut splitted_string = string.split('\n');
 
-        for line in string.split('\n') {
+        let mut current_line: String;
+        let mut next_line = match splitted_string.next() {
+            Some(l) => l.to_string(),
+            None => panic!("String has no newlines!")
+        };
+    
+    
+        loop {
+            // assign the already processed next_line
+            // to the current_line and handle it with the
+            // updated next_line
+            current_line = next_line.clone();
+            next_line = match splitted_string.next() {
+                Some(l) => l.to_string(),
+                None => {
+                    tuple_vec[current].push(Entry::new(current_line, None));
+                    break;
+                }
+            };
+
             // check if it starts with \t
             // and with how many \t's
-            let count_idents_previous = count_idents_current; 
-            let count_idents_current = count_idents_next; 
-            let count_idents_next = find_identifiers(line); 
-
-            if count_idents_current == into {
-                // find out if the Entry has a subdirectory or not
-                if count_idents_next > count_idents_current {
-                    // add a new subdirectory and save the index
-                    // as Some(index) in the current vectory
-                    vec.push(Vec::new());
-                    vec[current].push((line, Some(vec.len() - 1)));
-                // ...
-                } else if count_idents_next < count_idents_current {
-                    // vec[
+            count_idents_current = count_idents_next.clone(); 
+            count_idents_next = find_identifiers(next_line.clone()); 
+    
+            // remove the idents from all lines
+            next_line = next_line.replace("\t", "");
+    
+            // entry has a new subdirectory
+            if count_idents_next > count_idents_current {
+                // add a new subdirectory and save the index
+                // as Some(index) in the current vectory
+                tuple_vec.push(Vec::new());
+                let new_index = &tuple_vec.len() - 1;
+                tuple_vec[current].push(Entry::new(current_line, Some(new_index)));
+               
+                // store information to find back
+                path.push(current);
+                // enter the subdirectory
+                current = new_index;
+            // directory gets closed
+            } else if count_idents_next < count_idents_current {
+                tuple_vec[current].push(Entry::new(current_line, None));
+                let difference = count_idents_current - count_idents_next;
+    
+                // get the previous index and update the path
+                current = path[path.len() - difference];
+                for _ in 0..difference {
+                    path.pop();
                 }
+            // staying in the directory
+            } else {
+                tuple_vec[current].push(Entry::new(current_line, None));
             }
         }
 
-        Self::new(vec)
+        Self::new(tuple_vec)
     }
-
+    
     // expand -> enter a folder
     pub fn expand(&mut self) {
         // check if the element is actually expandable 
-        let current_element = self.current[self.selected].clone();
+        let current_element = self.get_current_folder()[self.selected].clone();
         if let Some(new) = current_element.next {
-            // update .current and .path
-            self.current = new;
-            self.path.push(current_element.name);
+            // update .path
+            self.path.push((current_element.name, new));
             // set the selected one to 0
             // to prevent index errors
             self.selected = 0;
@@ -188,22 +227,11 @@ impl ListWidget {
     // the opposite to expand
     pub fn back(&mut self) {
         // remove the last element from path 
-        self.path.pop();
-        let mut new = self.all.follow();
-        let mut match_name = |name| {
-            for n in &new {
-                if name == &n.name {
-                    new = n.follow();
-                    return;
-                }
-            }
-        };
-        for name in &self.path {
-            match_name(name);
+        // and update .selected
+        if self.path.len() != 1 {
+            self.path.pop();
+            self.selected = 0;
         }
-        // update .current and .selected
-        self.current = new;
-        self.selected = 0;
     }
 
     // scroll up/down
@@ -219,7 +247,7 @@ impl ListWidget {
             // scroll up, and 
             // if your're already at the bottom, nothing happens
             Direction::Down => {
-                if self.selected < self.current.len() - 1 {
+                if self.selected < self.get_current_folder().len() - 1 {
                     self.selected += 1;
                 }
             }
@@ -227,11 +255,19 @@ impl ListWidget {
     }
 
     pub fn get_name(&self) -> String {
-        self.current[self.selected].name.clone()
+        self.get_current_folder()[self.selected].name.clone()
+    }
+
+    pub fn get_current_folder(&self) -> Vec<Entry> {
+        self.all[self.path.len() - 1].clone()
     }
 
     pub fn get_path(&self) -> String {
-        format!("/{}", self.path.join("/"))
+        let mut output = String::from("/");
+        for (s, _) in &self.path {
+            output.push_str(&s);
+        }
+        output
     }
 
     pub fn apply_search(&mut self, keyword: String) {

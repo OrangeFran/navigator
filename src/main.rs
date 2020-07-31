@@ -1,7 +1,7 @@
 mod widgets;
 mod render;
 
-use widgets::{Entry, Direction};
+use widgets::Direction;
 use widgets::{Selectable, ListWidget, SearchWidget};
 
 use std::io::{stdin, stdout};
@@ -25,11 +25,7 @@ fn main() {
     let mut selected = Selectable::List;
 
     let mut search_widget = SearchWidget::new();
-    let mut list_widget = ListWidget::new(vec![
-        Entry { name: "folder".to_string(), next: Some(vec![
-            Entry { name: "folder".to_string(), next: None }
-        ])}
-    ]);
+    let mut list_widget = ListWidget::from_string("Hallo\n\tHello\nHallo".to_string());
 
     // draw the layout for the first time
     render::draw(&mut terminal, &list_widget, &search_widget, &selected);
