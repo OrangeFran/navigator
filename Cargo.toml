@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 tui = "0.9.3"
 termion = "1.5.5"
+
+clap = "2.33.1"

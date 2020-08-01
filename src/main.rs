@@ -1,9 +1,13 @@
+extern crate clap;
+use clap::{Arg, App};
+
 mod widgets;
 mod render;
 
 use widgets::Direction;
 use widgets::{Selectable, ListWidget, SearchWidget};
 
+use std::io::{Read};
 use std::io::{stdin, stdout};
 
 use tui::terminal::Terminal;
@@ -11,27 +15,61 @@ use tui::backend::TermionBackend;
 
 use termion::event::{Event, Key};
 use termion::input::TermRead;
-use termion::raw::IntoRawMode;
+use termion::raw::{RawTerminal, IntoRawMode};
 
-fn main() {
-    // set up the terminal -> into raw mode
+// set up the terminal -> into raw mode
+fn setup() -> Terminal<TermionBackend<RawTerminal<std::io::Stdout>>> {
     let raw = stdout().into_raw_mode().expect("Failed to put the terminal into raw mode");
     let backend = TermionBackend::new(raw);
+
     let mut terminal = Terminal::new(backend).expect("Failed to create the terminal");
 
     terminal.hide_cursor().expect("Failed to hide the cursor");
     terminal.clear().expect("Failed to clear the terminal");
-   
-    let mut selected = Selectable::List;
 
+    terminal
+}
+
+fn main() {
+    // setup the cli app
+    let matches = App::new("navigator")
+        .version("0.1")
+        .author("Finn H.")
+        .about("Navigate through string-based structures with ease!")
+        .arg(Arg::with_name("INPUT")
+             .help("Sets the string to use")
+             .required_unless("STDIN"))
+        .arg(Arg::with_name("STDIN")
+             .short("s")
+             .long("stdin")
+             .help("Gets input over stdin (conflicts wiht INPUT)"))
+        .get_matches();
+
+    let mut input = String::new();
+    let stdin = stdin();
+    let mut handle = stdin.lock(); 
+    match matches.occurrences_of("STDIN") {
+        0 => {
+            input = matches.value_of("INPUT")
+                .expect("No INPUT provided").to_string();
+        }
+        // try to use INTPUT if defined
+        // else print an error
+        _ => {
+            handle.read_to_string(&mut input).expect("Failed to receive from stdin");
+        }
+    }
+
+    let mut terminal = setup();
+    let mut selected = Selectable::List;
     let mut search_widget = SearchWidget::new();
-    let mut list_widget = ListWidget::from_string("Hallo\n\tHello\nHallo".to_string());
+    let mut list_widget = ListWidget::from_string(input);
 
     // draw the layout for the first time
     render::draw(&mut terminal, &list_widget, &search_widget, &selected);
 
     // wait for input events
-    for event in stdin().events() {
+    for event in handle.events() {
         // if the program failed
         // to get the event, just continue
         if event.is_err() {
