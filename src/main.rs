@@ -98,69 +98,71 @@ fn main() {
         }
     
         match selected {
-            Selectable::Search => match event.unwrap() {
-                // apply the search
-                // must go befor Key::Char(c)
-                Event::Key(Key::Char('\n')) => {
-                    list_widget.apply_search(search_widget.get_content());
-                    selected = Selectable::List;
+            Selectable::Search => {
+                terminal.show_cursor().expect("Failed to show cursor");
+                match event.unwrap() {
+                    // apply the search
+                    // must go befor Key::Char(c)
+                    Event::Key(Key::Char('\n')) => {
+                        list_widget.apply_search(search_widget.get_content());
+                        selected = Selectable::List;
 
-                    terminal.hide_cursor().expect("Failed to hide cursor");
-                }
-                // add the char to the search
-                Event::Key(Key::Char(c)) => {
-                    search_widget.add(c);
-                }
-                // remove the last char from the search
-                Event::Key(Key::Backspace) => {
-                    search_widget.pop();
-                }
-                // switch back to the list view
-                Event::Key(Key::Esc) => {
-                    selected = Selectable::List;
+                        terminal.hide_cursor().expect("Failed to hide cursor");
+                    }
+                    // add the char to the search
+                    Event::Key(Key::Char(c)) => {
+                        search_widget.add(c);
+                    }
+                    // remove the last char from the search
+                    Event::Key(Key::Backspace) => {
+                        search_widget.pop();
+                    }
+                    // switch back to the list view
+                    Event::Key(Key::Esc) => {
+                        selected = Selectable::List;
+                    }
 
-                    terminal.hide_cursor().expect("Failed to hide cursor");
+                    _ => {}
                 }
-
-                _ => {}
             }
-            Selectable::List => match event.unwrap() {
-                // move up/down/left/right
-                // with the arrow or vim keys
-                Event::Key(Key::Up) | Event::Key(Key::Char('k')) => {
-                    list_widget.scroll(Direction::Up);
-                }
-                Event::Key(Key::Down) | Event::Key(Key::Char('j')) => {
-                    list_widget.scroll(Direction::Down);
-                }
-                // expand an element
-                Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
-                    list_widget.expand();
-                }
-                // expand an element
-                Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
-                    list_widget.back();
-                }
-                // switch to search widget
-                Event::Key(Key::Char('/')) => {
-                    selected = Selectable::Search;
+            Selectable::List => {
+                terminal.hide_cursor().expect("Failed to hide cursor");
+                match event.unwrap() {
+                    // move up/down/left/right
+                    // with the arrow or vim keys
+                    Event::Key(Key::Up) | Event::Key(Key::Char('k')) => {
+                        list_widget.scroll(Direction::Up);
+                    }
+                    Event::Key(Key::Down) | Event::Key(Key::Char('j')) => {
+                        list_widget.scroll(Direction::Down);
+                    }
+                    // expand an element
+                    Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
+                        list_widget.expand();
+                    }
+                    // expand an element
+                    Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
+                        list_widget.back();
+                    }
+                    // switch to search widget
+                    Event::Key(Key::Char('/')) => {
+                        selected = Selectable::Search;
+                    }
+                    // print out the selected element to stdout
+                    Event::Key(Key::Char('\n')) => {
+                        terminal.clear().expect("Failed to clear the terminal");
+                        // raw.suspend_raw_mode();
+                        println!("{}", list_widget.get_name());
+                        break;
+                    }
+                    // quit the program
+                    Event::Key(Key::Char('q')) => {
+                        terminal.clear().expect("Failed to clear the terminal");
+                        break;
+                    }
 
-                    terminal.show_cursor().expect("Failed to show cursor");
+                    _ => {}
                 }
-                // print out the selected element to stdout
-                Event::Key(Key::Char('\n')) => {
-                    terminal.clear().expect("Failed to clear the terminal");
-                    // raw.suspend_raw_mode();
-                    println!("{}", list_widget.get_name());
-                    break;
-                }
-                // quit the program
-                Event::Key(Key::Char('q')) => {
-                    terminal.clear().expect("Failed to clear the terminal");
-                    break;
-                }
-
-                _ => {}
             }
         }
 
