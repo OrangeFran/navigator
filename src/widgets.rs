@@ -91,7 +91,7 @@ impl Widget for ListWidget {
         for entry in &self.get_current_folder() {
             // add icons for better visbility
             let elem = match entry.next {
-                Some(_) => Text::raw(format!("{}{}", "  ", entry.name)),
+                Some(_) => Text::raw(format!("{} {}", "📁", entry.name)),
                 None => Text::raw(format!("   {}", entry.name))
             };
             

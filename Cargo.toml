@@ -9,5 +9,8 @@ edition = "2018"
 [dependencies]
 tui = "0.9.3"
 termion = "1.5.5"
-
 clap = "2.33.1"
+
+toml = "0.5.3"
+serde = "1.0.114"
+serde_derive = "1.0.114"

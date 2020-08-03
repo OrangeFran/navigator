@@ -3,11 +3,13 @@ use clap::{Arg, App};
 
 mod widgets;
 mod render;
+mod config;
 
 use widgets::Direction;
 use widgets::{Selectable, ListWidget, SearchWidget};
 
-use std::io::{Read};
+use std::fs::File;
+use std::io::Read;
 use std::io::{stdin, stdout};
 
 use tui::terminal::Terminal;
@@ -38,17 +40,22 @@ fn main() {
         .about("Navigate through string-based structures with ease!")
         .arg(Arg::with_name("INPUT")
              .help("Sets the string to use")
-             .required_unless("STDIN"))
-        .arg(Arg::with_name("STDIN")
+             .required_unless("stdin"))
+        .arg(Arg::with_name("stdin")
              .short("s")
              .long("stdin")
-             .help("Gets input over stdin (conflicts wiht INPUT)"))
+             .help("Gets input over stdin"))
+        .arg(Arg::with_name("config")
+             .short("c")
+             .long("config")
+             .value_name("FILE")
+             .takes_value(true)
+             .help("Sets the path to the config file"))
         .get_matches();
 
-    let mut input = String::new();
     let stdin = stdin();
-    let mut handle = stdin.lock(); 
-    match matches.occurrences_of("STDIN") {
+    let mut input = String::new();
+    match matches.occurrences_of("stdin") {
         0 => {
             input = matches.value_of("INPUT")
                 .expect("No INPUT provided").to_string();
@@ -56,9 +63,21 @@ fn main() {
         // try to use INTPUT if defined
         // else print an error
         _ => {
+            let mut handle = stdin.lock(); 
             handle.read_to_string(&mut input).expect("Failed to receive from stdin");
         }
     }
+
+    // open input file and read to string
+    let mut config = String::new();
+    if let Some(c) = matches.value_of("config") {
+        File::open(c)
+            .expect("Failed to open config")
+            .read_to_string(&mut config)
+            .expect("Failed to read config");
+    }
+
+    let config = config::read_config(config.as_str());
 
     let mut terminal = setup();
     let mut selected = Selectable::List;
@@ -66,8 +85,9 @@ fn main() {
     let mut list_widget = ListWidget::from_string(input);
 
     // draw the layout for the first time
-    render::draw(&mut terminal, &list_widget, &search_widget, &selected);
+    render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
 
+    let handle = stdin.lock();
     // wait for input events
     for event in handle.events() {
         // if the program failed
@@ -83,6 +103,8 @@ fn main() {
                 Event::Key(Key::Char('\n')) => {
                     list_widget.apply_search(search_widget.get_content());
                     selected = Selectable::List;
+
+                    terminal.hide_cursor().expect("Failed to hide cursor");
                 }
                 // add the char to the search
                 Event::Key(Key::Char(c)) => {
@@ -95,6 +117,8 @@ fn main() {
                 // switch back to the list view
                 Event::Key(Key::Esc) => {
                     selected = Selectable::List;
+
+                    terminal.hide_cursor().expect("Failed to hide cursor");
                 }
 
                 _ => {}
@@ -119,6 +143,8 @@ fn main() {
                 // switch to search widget
                 Event::Key(Key::Char('/')) => {
                     selected = Selectable::Search;
+
+                    terminal.show_cursor().expect("Failed to show cursor");
                 }
                 // print out the selected element to stdout
                 Event::Key(Key::Char('\n')) => {
@@ -138,6 +164,6 @@ fn main() {
         }
 
         // update the tui
-        render::draw(&mut terminal, &list_widget, &search_widget, &selected);
+        render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
     }
 }
