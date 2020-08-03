@@ -87,9 +87,10 @@ fn main() {
     // draw the layout for the first time
     render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
 
-    let handle = stdin.lock();
-    // wait for input events
-    for event in handle.events() {
+    // wait for input events from /dev/tty
+    let tty = File::open("/dev/tty")
+        .expect("Failed to open /dev/tty");
+    for event in tty.events() {
         // if the program failed
         // to get the event, just continue
         if event.is_err() {
