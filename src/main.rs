@@ -53,7 +53,6 @@ fn main() {
              .help("Sets the path to the config file"))
         .get_matches();
 
-    let stdin = stdin();
     let mut input = String::new();
     match matches.occurrences_of("stdin") {
         0 => {
@@ -63,8 +62,7 @@ fn main() {
         // try to use INTPUT if defined
         // else print an error
         _ => {
-            let mut handle = stdin.lock(); 
-            handle.read_to_string(&mut input).expect("Failed to receive from stdin");
+            stdin().read_to_string(&mut input).expect("Failed to receive from stdin");
         }
     }
 

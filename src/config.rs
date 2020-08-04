@@ -58,7 +58,7 @@ pub fn read_config(string: &str) -> Config {
     Config {
         theme: Theme {
             selected: Color { 
-                fg: None,
+                fg: Some([100, 100, 100]),
                 bg: None
             },
             default: Color {

@@ -1,4 +1,7 @@
 selector = "> "
 
 [theme.selected]
+fg = [0, 0, 255]
+
 [theme.default]
+fg = [255, 0, 0]

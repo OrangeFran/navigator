@@ -26,17 +26,13 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
             } else {
                 return Style::default()
                     .fg(Color::Rgb(af[0], af[1], af[2]))
-                    .bg(Color::Reset)
             }
         } else {
             if let Some(ab) = arr.bg {
                 return Style::default()
-                    .fg(Color::Reset)
                     .bg(Color::Rgb(ab[0], ab[1], ab[2]))
             } else {
                 return Style::default()
-                    .fg(Color::Reset)
-                    .bg(Color::Reset)
             }
         }
     };
@@ -54,7 +50,7 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
         Block::default()
             .borders(Borders::ALL)
             .border_style(
-                color_rgb(config.theme.selected.clone())
+                color_rgb(config.theme.default.clone())
             )
     };
 
