@@ -20,7 +20,7 @@ pub trait Widget {
 //
 // the options holds a number which refers
 // to the index where it it stored
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Entry {
     name: String,
     next: Option<usize>
@@ -32,6 +32,11 @@ impl Entry {
             name: n,
             next: nx
         }
+    }
+    // converts and Entry to a tuple
+    // reverted ::new method
+    pub fn revert(&self) -> (String, Option<usize>) {
+        (self.name.clone(), self.next)
     }
 }
 
@@ -79,7 +84,7 @@ impl SearchWidget {
 }
 
 pub struct ListWidget {
-    all: Vec<Vec<Entry>>, // represents all elements
+    pub all: Vec<Vec<Entry>>, // represents all elements
     path: Vec<(String, usize)>, // specifies the path the users is currently in
     pub selected: usize, // represents the currently selected element
     search: String // store the search keywords (get used in .display)
@@ -124,21 +129,22 @@ impl ListWidget {
 
     // converts the given string to a ListWidget    
     // this is probably the holy method, that makes this project something usable
-    pub fn from_string(string: String) -> Self {
+    pub fn from_string(string: String, sep: String) -> Self {
         // first, try with \t
         // custom seperators are coming
         let mut tuple_vec: Vec<Vec<Entry>> = vec![vec![]];
     
-        // checks for identifiers and returns 
-        // how many it found
-        let find_identifiers = |line: String| -> usize {
-            for (i, c) in line.chars().enumerate() {
-                if c != '\t' {
-                    return i;
+        // checks for identifiers and returns how many it found
+        let find_identifiers = |mut line: String| -> usize {
+            let mut count = 0;
+            loop {
+                if line.starts_with(&sep) {
+                    count += 1; 
+                    line = line.replacen(&sep, "", 1);
+                    continue;
                 }
+                return count;
             }
-            // default value of zero
-            return 0;
         };
         
         // stores the path in indexes to the current index
@@ -158,7 +164,6 @@ impl ListWidget {
             None => panic!("String has no newlines!")
         };
     
-    
         loop {
             // assign the already processed next_line
             // to the current_line and handle it with the
@@ -173,13 +178,12 @@ impl ListWidget {
             };
 
             // check if it starts with \t
-            // and with how many \t's
+            // and with how many \t's and removes the automatically
             count_idents_current = count_idents_next.clone(); 
             count_idents_next = find_identifiers(next_line.clone()); 
-    
-            // remove the idents from all lines
-            next_line = next_line.replace("\t", "");
-    
+   
+            next_line = next_line.replace(&sep, "");
+
             // entry has a new subdirectory
             if count_idents_next > count_idents_current {
                 // add a new subdirectory and save the index
@@ -264,10 +268,18 @@ impl ListWidget {
 
     pub fn get_path(&self) -> String {
         let mut output = String::from("/");
-        for (s, _) in &self.path {
-            output.push_str(&s);
+        for (s, _) in &self.path[1..] {
+            output.push_str(s);
+            output.push('/');
         }
         output
+    }
+
+    pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
+        self.all.iter().map(|v| {
+            v.iter().map(|e| { e.revert() })
+                .collect::<Vec<(String, Option<usize>)>>()
+        }).collect()
     }
 
     pub fn apply_search(&mut self, keyword: String) {

@@ -20,7 +20,7 @@ use termion::input::TermRead;
 use termion::raw::{RawTerminal, IntoRawMode};
 
 // set up the terminal -> into raw mode
-fn setup() -> Terminal<TermionBackend<RawTerminal<std::io::Stdout>>> {
+fn setup_terminal() -> Terminal<TermionBackend<RawTerminal<std::io::Stdout>>> {
     let raw = stdout().into_raw_mode().expect("Failed to put the terminal into raw mode");
     let backend = TermionBackend::new(raw);
 
@@ -42,9 +42,12 @@ fn main() {
              .help("Sets the string to use")
              .required_unless("stdin"))
         .arg(Arg::with_name("stdin")
-             .short("s")
              .long("stdin")
              .help("Gets input over stdin"))
+        .arg(Arg::with_name("seperator")
+             .short("s")
+             .long("sep")
+             .help("Sets the seperator that the parsing is based on"))
         .arg(Arg::with_name("config")
              .short("c")
              .long("config")
@@ -74,18 +77,27 @@ fn main() {
             .read_to_string(&mut config)
             .expect("Failed to read config");
     }
-
+    // config::read_config returns default values
+    // if the string is empty
     let config = config::read_config(config.as_str());
 
-    let mut terminal = setup();
+    // check if a seperator was provided
+    // else fall back to \t (tab)
+    let seperator = match matches.value_of("seperator") {
+        Some(s) => s.to_string(),
+        None => "\t".to_string()
+    };
+
+    let mut terminal = setup_terminal();
     let mut selected = Selectable::List;
     let mut search_widget = SearchWidget::new();
-    let mut list_widget = ListWidget::from_string(input);
+    let mut list_widget = ListWidget::from_string(input, seperator);
 
     // draw the layout for the first time
     render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
 
     // wait for input events from /dev/tty
+    // because stdin is blocked by the user input
     let tty = File::open("/dev/tty")
         .expect("Failed to open /dev/tty");
     for event in tty.events() {
@@ -166,5 +178,63 @@ fn main() {
 
         // update the tui
         render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::widgets::Entry;
+    use super::widgets::ListWidget;
+    // functions to create elements for a vector
+    // make writing tests a whole less verbose
+    fn single() -> (String, Option<usize>) {
+        (String::from("Single"), None)
+    }
+    fn folder(i: usize) -> (String, Option<usize>) {
+        (String::from("Folder"), Some(i))
+    }
+
+    #[test]
+    fn no_folders() {
+        let input = String::from("Single
+Single
+Single");
+        let seperator = String::from("\t");
+        assert_eq!(
+            ListWidget::from_string(input, seperator).get_all_reverted(),
+            vec![vec![single(), single(), single()]]
+        );
+    }
+
+    #[test]
+    fn simple_folders() {
+        let input = String::from("Single
+Folder
+\tSingle
+Single");
+        let seperator = String::from("\t");
+        assert_eq!(
+            ListWidget::from_string(input, seperator).get_all_reverted(),
+            vec![vec![single(), folder(1), single()], vec![single()]]
+        );
+    }
+
+    #[test]
+    fn nested_folders() {
+        let input = String::from("Single
+Folder
+\tSingle
+\tFolder
+\t\tFolder
+\t\t\tSingle
+\tFolder
+\t\tSingle
+Single");
+        let seperator = String::from("\t");
+        // sorry, it's a little long, hope you can read it
+        assert_eq!(
+            ListWidget::from_string(input, seperator).get_all_reverted(),
+            vec![vec![single(), folder(1), single()], vec![single(), folder(2), folder(4)], vec![folder(3)], vec![single()], vec![single()]]
+        );
     }
 }
