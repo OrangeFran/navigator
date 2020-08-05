@@ -209,10 +209,7 @@ Single");
 
     #[test]
     fn simple_folders() {
-        let input = String::from("Single
-Folder
-\tSingle
-Single");
+        let input = String::from("Single\nFolder\n\tSingle\nSingle");
         let seperator = String::from("\t");
         assert_eq!(
             ListWidget::from_string(input, seperator).get_all_reverted(),
@@ -222,15 +219,7 @@ Single");
 
     #[test]
     fn nested_folders() {
-        let input = String::from("Single
-Folder
-\tSingle
-\tFolder
-\t\tFolder
-\t\t\tSingle
-\tFolder
-\t\tSingle
-Single");
+        let input = String::from("Single\nFolder\n\tSingle\n\tFolder\n\t\tFolder\n\t\t\tSingle\n\tFolder\n\t\tSingle\nSingle");
         let seperator = String::from("\t");
         // sorry, it's a little long, hope you can read it
         assert_eq!(
@@ -241,15 +230,7 @@ Single");
 
     #[test]
     fn nested_folders_custom_seperator() {
-        let input = String::from("Single
-Folder
-tabSingle
-tabFolder
-tabtabFolder
-tabtabtabSingle
-tabFolder
-tabtabSingle
-Single");
+        let input = String::from("Single\nFolder\ntabSingle\ntabFolder\ntabtabFolder\ntabtabtabSingle\ntabFolder\ntabtabSingle\nSingle");
         let seperator = String::from("tab");
         // sorry, it's a little long, hope you can read it
         assert_eq!(
