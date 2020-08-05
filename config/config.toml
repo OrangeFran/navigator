@@ -1,7 +1,9 @@
 selector = "> "
 
 [theme.selected]
-fg = [0, 0, 255]
+fg = [255, 255, 255]
+# bg = ...
 
 [theme.default]
-fg = [255, 0, 0]
+fg = [40, 40, 40]
+# bg = ...
