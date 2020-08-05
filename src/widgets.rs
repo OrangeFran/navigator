@@ -200,7 +200,7 @@ impl ListWidget {
             } else if count_idents_next < count_idents_current {
                 tuple_vec[current].push(Entry::new(current_line, None));
                 let difference = count_idents_current - count_idents_next;
-    
+
                 // get the previous index and update the path
                 current = path[path.len() - difference];
                 for _ in 0..difference {
@@ -263,7 +263,7 @@ impl ListWidget {
     }
 
     pub fn get_current_folder(&self) -> Vec<Entry> {
-        self.all[self.path.len() - 1].clone()
+        self.all[self.path[self.path.len() - 1].1].clone()
     }
 
     pub fn get_path(&self) -> String {
