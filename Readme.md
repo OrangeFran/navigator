@@ -17,15 +17,14 @@ So don't expect any ✨ bling ✨ (for now).
 
 ### Installation
 
-Simpy clone and compile the source code.
+Simpy clone and install the package locally with cargo.
+Cargo probably installs the binary to the default locations `~/.cargo/bin`.
+Make sure to put that in your path so you can call it.
 
 ``` bash
 git clone https://github.com/OrangeFran/navigator.git
-cd navigator && cargo build --release
+cargo install --path navigator
 ```
-
-You could put the binary in a place in your path.
-Some options are `~/.local/bin (user)` or `/usr/bin (root)`.
 
 ### Usage
 
