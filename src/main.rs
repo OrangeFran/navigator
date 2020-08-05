@@ -182,9 +182,12 @@ fn main() {
     }
 }
 
+
+// Tests that ensure that the from_string 'algorithm' works.
+// Cargo test will run everytime I changed something in from_string or ListWidget
+// to ensure stability.
 #[cfg(test)]
 mod tests {
-    use super::widgets::Entry;
     use super::widgets::ListWidget;
     // functions to create elements for a vector
     // make writing tests a whole less verbose
