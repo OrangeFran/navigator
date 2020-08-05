@@ -45,6 +45,11 @@ If there are errors, please open an issue.
 
 You can specify a custom seperator with -s or --sep.
 
+For some useful examples, take a look at the examples folder.
+This tool is mostly built for people who want to script stuff.
+But you can sure use it for everything you want to.
+If you'd like to share a cool script, you can make a pull request.
+
 ### Shortcuts
 
 Navigator is a terminal-user-interface, so it relies on shortcuts.
