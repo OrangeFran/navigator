@@ -47,6 +47,7 @@ fn main() {
         .arg(Arg::with_name("seperator")
              .short("s")
              .long("sep")
+             .takes_value(true)
              .help("Sets the seperator that the parsing is based on"))
         .arg(Arg::with_name("config")
              .short("c")
@@ -231,6 +232,25 @@ Folder
 \t\tSingle
 Single");
         let seperator = String::from("\t");
+        // sorry, it's a little long, hope you can read it
+        assert_eq!(
+            ListWidget::from_string(input, seperator).get_all_reverted(),
+            vec![vec![single(), folder(1), single()], vec![single(), folder(2), folder(4)], vec![folder(3)], vec![single()], vec![single()]]
+        );
+    }
+
+    #[test]
+    fn nested_folders_custom_seperator() {
+        let input = String::from("Single
+Folder
+tabSingle
+tabFolder
+tabtabFolder
+tabtabtabSingle
+tabFolder
+tabtabSingle
+Single");
+        let seperator = String::from("tab");
         // sorry, it's a little long, hope you can read it
         assert_eq!(
             ListWidget::from_string(input, seperator).get_all_reverted(),
