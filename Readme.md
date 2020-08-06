@@ -4,6 +4,7 @@
 
 Navigator allows you to navigate through heavy output with ease.
 You can feed it a string and it gives you in return a beautiful interface from where you can select or search.
+The preview image above shows you the output of the `examples/files.sh` script. But it's definitely not a file manager.
 
 It differentiates itself by providing support for folders.
 Simply because folders allow for much cleaner and simpler navigation.
@@ -51,6 +52,7 @@ There are also some tests that prove it. Run `cargo test` for that.
 If there are errors, please open an issue.
 
 You can specify a custom seperator with -s or --sep.
+By default it's a tab (\t) as mentioned above.
 
 For some useful examples, take a look at the examples folder.
 This tool is mostly built for people who want to script stuff.
