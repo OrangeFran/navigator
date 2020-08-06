@@ -118,34 +118,39 @@ fn main() {
         
             match selected {
                 Selectable::Search => {
-                    terminal.show_cursor().expect("Failed to show cursor");
                     match event.unwrap() {
-                        // apply the search
                         // must go befor Key::Char(c)
+                        // switch back while keeping the search
+                        //
+                        // only possible if something was found
+                        // else block the switch (the user can escape with esc or search for
+                        // something different)
                         Event::Key(Key::Char('\n')) => {
-                            list_widget.apply_search(search_widget.get_content());
-                            selected = Selectable::List;
-
-                            terminal.hide_cursor().expect("Failed to hide cursor");
+                            if !list_widget.empty_display() {
+                                selected = Selectable::List;
+                            }    
                         }
                         // add the char to the search
                         Event::Key(Key::Char(c)) => {
                             search_widget.add(c);
+                            list_widget.apply_search(search_widget.get_content());
                         }
                         // remove the last char from the search
                         Event::Key(Key::Backspace) => {
                             search_widget.pop();
+                            list_widget.apply_search(search_widget.get_content());
                         }
                         // switch back to the list view
+                        // do not keep the search
                         Event::Key(Key::Esc) => {
                             selected = Selectable::List;
+                            list_widget.apply_search(String::new());
                         }
 
                         _ => {}
                     }
                 }
                 Selectable::List => {
-                    terminal.hide_cursor().expect("Failed to hide cursor");
                     match event.unwrap() {
                         // move up/down/left/right
                         // with the arrow or vim keys
@@ -156,12 +161,22 @@ fn main() {
                             list_widget.scroll(Direction::Down);
                         }
                         // expand an element
+                        // if the folder contains no element because of the search
+                        // enter the folder and directly switch to the search
                         Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
                             list_widget.expand();
+                            if list_widget.empty_display() {
+                                selected = Selectable::Search; 
+                            }
                         }
-                        // expand an element
+                        // go back an element
+                        // if the folder contains no element because of the search
+                        // enter the folder and directly switch to the search
                         Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
                             list_widget.back();
+                            if list_widget.empty_display() {
+                                selected = Selectable::Search; 
+                            }
                         }
                         // switch to search widget
                         Event::Key(Key::Char('/')) => {

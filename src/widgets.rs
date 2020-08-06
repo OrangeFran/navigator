@@ -115,7 +115,7 @@ impl Widget for ListWidget {
                 Text::raw(entry.name.clone())
             } else {
                 match entry.next {
-                    Some(_) => Text::raw(format!("{} {}", "📁", entry.name)),
+                    Some(_) => Text::raw(format!("📁 {}", entry.name)),
                     None => Text::raw(format!("   {}", entry.name))
                 }
             };
@@ -124,6 +124,16 @@ impl Widget for ListWidget {
             // that do not match with self.search
             if self.search.is_empty() || entry.name.contains(&self.search) {
                 vec.push(elem);
+            }
+        }
+
+        // if the vector is empty
+        // add an informative text
+        if vec.is_empty() {
+            if lame {
+                vec.push(Text::raw(String::from("❎ Nothing found!")));
+            } else {
+                vec.push(Text::raw(String::from("❎ Nothing found!")));
             }
         }
         vec
@@ -295,6 +305,7 @@ impl ListWidget {
                 vec.push(elem)
             }
         }
+
         vec
     }
 
@@ -316,5 +327,12 @@ impl ListWidget {
 
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword; 
+        self.selected = 0;
+    }
+
+    // checks if the current folder actually
+    // contains something or just the message that nothing was found
+    pub fn empty_display(&self) -> bool {
+        self.get_current_displayed().is_empty()
     }
 }
