@@ -19,19 +19,6 @@ use termion::event::{Event, Key};
 use termion::input::TermRead;
 use termion::raw::{RawTerminal, IntoRawMode};
 
-// set up the terminal -> into raw mode
-fn setup_terminal() -> Terminal<TermionBackend<RawTerminal<std::io::Stdout>>> {
-    let raw = stdout().into_raw_mode().expect("Failed to put the terminal into raw mode");
-    let backend = TermionBackend::new(raw);
-
-    let mut terminal = Terminal::new(backend).expect("Failed to create the terminal");
-
-    terminal.hide_cursor().expect("Failed to hide the cursor");
-    terminal.clear().expect("Failed to clear the terminal");
-
-    terminal
-}
-
 fn main() {
     // setup the cli app
     let matches = App::new("navigator")
@@ -89,96 +76,116 @@ fn main() {
         None => "\t".to_string()
     };
 
-    let mut terminal = setup_terminal();
-    let mut selected = Selectable::List;
-    let mut search_widget = SearchWidget::new();
-    let mut list_widget = ListWidget::from_string(input, seperator);
 
-    // draw the layout for the first time
-    render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
+    // message that get's outputted
+    // gets filled inside the for loop
+    let mut message = String::new();
 
-    // wait for input events from /dev/tty
-    // because stdin is blocked by the user input
-    let tty = File::open("/dev/tty")
-        .expect("Failed to open /dev/tty");
-    for event in tty.events() {
-        // if the program failed
-        // to get the event, just continue
-        if event.is_err() {
-            continue;
-        }
-    
-        match selected {
-            Selectable::Search => {
-                terminal.show_cursor().expect("Failed to show cursor");
-                match event.unwrap() {
-                    // apply the search
-                    // must go befor Key::Char(c)
-                    Event::Key(Key::Char('\n')) => {
-                        list_widget.apply_search(search_widget.get_content());
-                        selected = Selectable::List;
+    {    
+        // set up the terminal -> into raw mode
+        let raw = stdout().into_raw_mode().expect("Failed to put the terminal into raw mode");
+        let backend = TermionBackend::new(raw);
+        let mut terminal = Terminal::new(backend).expect("Failed to create the terminal");
 
-                        terminal.hide_cursor().expect("Failed to hide cursor");
-                    }
-                    // add the char to the search
-                    Event::Key(Key::Char(c)) => {
-                        search_widget.add(c);
-                    }
-                    // remove the last char from the search
-                    Event::Key(Key::Backspace) => {
-                        search_widget.pop();
-                    }
-                    // switch back to the list view
-                    Event::Key(Key::Esc) => {
-                        selected = Selectable::List;
-                    }
+        terminal.hide_cursor().expect("Failed to hide the cursor");
+        terminal.clear().expect("Failed to clear the terminal");
 
-                    _ => {}
-                }
-            }
-            Selectable::List => {
-                terminal.hide_cursor().expect("Failed to hide cursor");
-                match event.unwrap() {
-                    // move up/down/left/right
-                    // with the arrow or vim keys
-                    Event::Key(Key::Up) | Event::Key(Key::Char('k')) => {
-                        list_widget.scroll(Direction::Up);
-                    }
-                    Event::Key(Key::Down) | Event::Key(Key::Char('j')) => {
-                        list_widget.scroll(Direction::Down);
-                    }
-                    // expand an element
-                    Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
-                        list_widget.expand();
-                    }
-                    // expand an element
-                    Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
-                        list_widget.back();
-                    }
-                    // switch to search widget
-                    Event::Key(Key::Char('/')) => {
-                        selected = Selectable::Search;
-                    }
-                    // print out the selected element to stdout
-                    Event::Key(Key::Char('\n')) => {
-                        terminal.clear().expect("Failed to clear the terminal");
-                        // raw.suspend_raw_mode();
-                        println!("{}", list_widget.get_name());
-                        break;
-                    }
-                    // quit the program
-                    Event::Key(Key::Char('q')) => {
-                        terminal.clear().expect("Failed to clear the terminal");
-                        break;
-                    }
+        let mut selected = Selectable::List;
+        let mut search_widget = SearchWidget::new();
+        let mut list_widget = ListWidget::from_string(input, seperator);
 
-                    _ => {}
-                }
-            }
-        }
-
-        // update the tui
+        // draw the layout for the first time
         render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
+
+        // wait for input events from /dev/tty
+        // because stdin is blocked by the user input
+        let tty = File::open("/dev/tty")
+            .expect("Failed to open /dev/tty");
+        for event in tty.events() {
+            // if the program failed
+            // to get the event, just continue
+            if event.is_err() {
+                continue;
+            }
+        
+            match selected {
+                Selectable::Search => {
+                    terminal.show_cursor().expect("Failed to show cursor");
+                    match event.unwrap() {
+                        // apply the search
+                        // must go befor Key::Char(c)
+                        Event::Key(Key::Char('\n')) => {
+                            list_widget.apply_search(search_widget.get_content());
+                            selected = Selectable::List;
+
+                            terminal.hide_cursor().expect("Failed to hide cursor");
+                        }
+                        // add the char to the search
+                        Event::Key(Key::Char(c)) => {
+                            search_widget.add(c);
+                        }
+                        // remove the last char from the search
+                        Event::Key(Key::Backspace) => {
+                            search_widget.pop();
+                        }
+                        // switch back to the list view
+                        Event::Key(Key::Esc) => {
+                            selected = Selectable::List;
+                        }
+
+                        _ => {}
+                    }
+                }
+                Selectable::List => {
+                    terminal.hide_cursor().expect("Failed to hide cursor");
+                    match event.unwrap() {
+                        // move up/down/left/right
+                        // with the arrow or vim keys
+                        Event::Key(Key::Up) | Event::Key(Key::Char('k')) => {
+                            list_widget.scroll(Direction::Up);
+                        }
+                        Event::Key(Key::Down) | Event::Key(Key::Char('j')) => {
+                            list_widget.scroll(Direction::Down);
+                        }
+                        // expand an element
+                        Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
+                            list_widget.expand();
+                        }
+                        // expand an element
+                        Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
+                            list_widget.back();
+                        }
+                        // switch to search widget
+                        Event::Key(Key::Char('/')) => {
+                            selected = Selectable::Search;
+                        }
+                        // print out the selected element to stdout
+                        Event::Key(Key::Char('\n')) => {
+                            terminal.clear().expect("Failed to clear the terminal");
+                            message.push_str(&list_widget.get_name());
+                            break;
+                        }
+                        // quit the program
+                        Event::Key(Key::Char('q')) => {
+                            terminal.clear().expect("Failed to clear the terminal");
+                            break;
+                        }
+
+                        _ => {}
+                    }
+                }
+            }
+
+            // update the tui
+            render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
+        }
+    }
+
+    // print out the selected element = message var if not empty
+    // needs to be outside the scope so the variables
+    // terminal and raw get destroyed -> allows for normal output to stdout
+    if !message.is_empty() {
+        println!("{}", message);
     }
 }
 
