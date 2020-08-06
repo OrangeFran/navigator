@@ -69,12 +69,13 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
             .split(f.size());
 
         // the search bar
-        let search_widget_content = search_widget.display();
+        let search_widget_content = search_widget.display(config.lame);
+        let search_widget_title = search_widget.get_title(config.lame);
         let mut search_widget_paragraph = Paragraph::new(search_widget_content.iter())
             .block({
                 match selected {
-                    Selectable::Search => block_selected().title(" 🔍 Search "),
-                    _ => block_default().title(" 🔍 Search ")
+                    Selectable::Search => block_selected().title(search_widget_title.as_str()),
+                    _ => block_default().title(search_widget_title.as_str())
                 }
             })
             .style(Style::default().fg(Color::White))
@@ -85,8 +86,8 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
         // the scrollable list view
         let mut list_widget_state = ListState::default();
        
-        let list_widget_content = list_widget.display();
-        let list_widget_title = format!(" 📂 {} ", list_widget.get_path());
+        let list_widget_content = list_widget.display(config.lame);
+        let list_widget_title = list_widget.get_title(config.lame);
         let mut list_widget_list = List::new(list_widget_content.into_iter())
             .block({
                 match selected {

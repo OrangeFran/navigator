@@ -45,27 +45,39 @@ pub struct Theme {
 #[derive(Deserialize, Clone)]
 pub struct Config {
     pub theme: Theme,
-    pub selector: String
+    pub selector: String,
+    pub lame: bool
 }
 
-pub fn read_config(string: &str) -> Config {
+// takes the content of the config file / or an empty string
+// + addition values passed in at runtime
+pub fn read_config(string: &str, lame: bool) -> Config {
     // return the default if string is empty
-    if !string.is_empty() {
-        return toml::from_str::<Config>(string)
+    let mut config = if !string.is_empty() {
+        toml::from_str::<Config>(string)
             .expect("Failed to parse toml")
-    }
     // else use the default values
-    Config {
-        theme: Theme {
-            selected: Color { 
-                fg: None,
-                bg: None
+    } else {
+        Config {
+            theme: Theme {
+                selected: Color { 
+                    fg: None,
+                    bg: None
+                },
+                default: Color {
+                    fg: Some([100, 100, 100]),
+                    bg: None
+                }
             },
-            default: Color {
-                fg: Some([100, 100, 100]),
-                bg: None
-            }
-        },
-        selector: "> ".to_string()
+            selector: "> ".to_string(),
+            lame: false
+        }
+    };
+
+    // fill in the additional values
+    if lame {
+        config.lame = lame;
     }
+
+    config
 }

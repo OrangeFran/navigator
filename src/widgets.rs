@@ -12,7 +12,8 @@ pub enum Selectable {
 // with Paragraphs, Lists and more creations of the
 // tui crate.
 pub trait Widget {
-    fn display(&self) -> Vec<Text>;
+    fn get_title(&self, lame: bool) -> String;
+    fn display(&self, lame: bool) -> Vec<Text>;
 }
 
 // a default entry with a name
@@ -54,7 +55,14 @@ pub struct SearchWidget {
 }
 
 impl Widget for SearchWidget {
-    fn display(&self) -> Vec<Text> {
+    fn get_title(&self, lame: bool) -> String {
+        if lame {
+            " Search ".to_string()
+        } else {
+            " 🔍 Search ".to_string()
+        }
+    }
+    fn display(&self, lame: bool) -> Vec<Text> {
         vec![Text::raw(self.content.clone())]
     }
 }
@@ -91,13 +99,25 @@ pub struct ListWidget {
 }
 
 impl Widget for ListWidget {
-    fn display(&self) -> Vec<Text> {
+    fn get_title(&self, lame: bool) -> String {
+        let path = self.get_path();
+        if lame {
+            format!(" {} ", path)
+        } else {
+            format!(" 📂 {} ", path)
+        }
+    }
+    fn display(&self, lame: bool) -> Vec<Text> {
         let mut vec = Vec::new();
         for entry in &self.get_current_folder() {
             // add icons for better visbility
-            let elem = match entry.next {
-                Some(_) => Text::raw(format!("{} {}", "📁", entry.name)),
-                None => Text::raw(format!("   {}", entry.name))
+            let elem = if lame {
+                Text::raw(entry.name.clone())
+            } else {
+                match entry.next {
+                    Some(_) => Text::raw(format!("{} {}", "📁", entry.name)),
+                    None => Text::raw(format!("   {}", entry.name))
+                }
             };
             
             // filter out all the names

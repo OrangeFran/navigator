@@ -17,14 +17,14 @@ use tui::backend::TermionBackend;
 
 use termion::event::{Event, Key};
 use termion::input::TermRead;
-use termion::raw::{RawTerminal, IntoRawMode};
+use termion::raw::IntoRawMode;
 
 fn main() {
     // setup the cli app
     let matches = App::new("navigator")
         .version("0.1")
         .author("Finn H.")
-        .about("Navigate through string-based structures with ease!")
+        .about("Look at output with ease!")
         .arg(Arg::with_name("INPUT")
              .help("Sets the string to use")
              .required_unless("stdin"))
@@ -42,21 +42,27 @@ fn main() {
              .value_name("FILE")
              .takes_value(true)
              .help("Sets the path to the config file"))
+        .arg(Arg::with_name("lame")
+             .short("l")
+             .long("lame")
+             .help("Hide emojis"))
         .get_matches();
 
+    // specifies if emojis should be hidden
+    let lame = matches.is_present("lame");
+    // get the string, which should be processed
     let mut input = String::new();
-    match matches.occurrences_of("stdin") {
-        0 => {
+    match matches.is_present("stdin") {
+        false => {
             input = matches.value_of("INPUT")
                 .expect("No INPUT provided").to_string();
         }
         // try to use INTPUT if defined
         // else print an error
-        _ => {
+        true => {
             stdin().read_to_string(&mut input).expect("Failed to receive from stdin");
         }
     }
-
     // open input file and read to string
     let mut config = String::new();
     if let Some(c) = matches.value_of("config") {
@@ -65,10 +71,10 @@ fn main() {
             .read_to_string(&mut config)
             .expect("Failed to read config");
     }
-    // config::read_config returns default values
-    // if the string is empty
-    let config = config::read_config(config.as_str());
-
+    // config::read_config returns default values if the string is empty
+    // and takes additional vlaues which can be configured at runtime
+    // these can be also defined in the config file, but could get overwritten
+    let config = config::read_config(config.as_str(), lame);
     // check if a seperator was provided
     // else fall back to \t (tab)
     let seperator = match matches.value_of("seperator") {
@@ -82,6 +88,11 @@ fn main() {
     let mut message = String::new();
 
     {    
+        // use tty instead of stdin
+        // because stdin could be blocked by the user input
+        let tty = File::open("/dev/tty")
+            .expect("Failed to open /dev/tty");
+
         // set up the terminal -> into raw mode
         let raw = stdout().into_raw_mode().expect("Failed to put the terminal into raw mode");
         let backend = TermionBackend::new(raw);
@@ -97,10 +108,7 @@ fn main() {
         // draw the layout for the first time
         render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
 
-        // wait for input events from /dev/tty
-        // because stdin is blocked by the user input
-        let tty = File::open("/dev/tty")
-            .expect("Failed to open /dev/tty");
+        // start listening
         for event in tty.events() {
             // if the program failed
             // to get the event, just continue
