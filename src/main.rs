@@ -45,7 +45,7 @@ fn main() {
         .arg(Arg::with_name("lame")
              .short("l")
              .long("lame")
-             .help("Hide emojis"))
+             .help("Hides emojis"))
         .get_matches();
 
     // specifies if emojis should be hidden
