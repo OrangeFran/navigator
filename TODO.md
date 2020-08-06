@@ -6,8 +6,7 @@
 
 ### Plans
 
-- Add live search. It updates while searching so you find your stuff better
-    + Add blocking mode if nothing was found -> you can't exit search
+- ✅  ~~Add live search. It updates while searching so you find your stuff better.~~
 
 - Display some information about the stuff in the current folder, like size etc.
 - More configuration options.
