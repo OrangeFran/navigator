@@ -11,6 +11,8 @@ Simply because folders allow for much cleaner and simpler navigation.
 Btw. it's a very immature project.<br>
 So don't expect any ✨ bling ✨ (for now).
 
+But if you want to know what could come, you can have a look at the [todo list](TODO.md).
+
 - [Installation](#installation)
 - [Usage](#usage)
 - [Shortcuts](#shortcuts)
