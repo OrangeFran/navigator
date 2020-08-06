@@ -54,15 +54,24 @@ If you'd like to share a cool script, you can make a pull request.
 Navigator is a terminal-user-interface, so it relies on shortcuts.
 But it's a simple tool, so there is no need to panic. If you know vim, you're probably good to go.
 
-For all the normies, here's a list:
+Here's a list:
 
-- h         go back
-- l         enter a folder
-- j         scroll down
-- k         scroll up
-
-- /         search for files
-- enter     return the selected element
+* **h**
+    * go back one folder (if possible)
+* **l**
+    * enter a folder (if possible)
+* **j**
+    * scroll down
+* **k**
+    * scroll up
+* **q**     
+    * quit
+* **/**     
+    * search for something
+* **esc**   
+    * switch back to the list
+* **enter** 
+    * return the selected element
 
 ### Configuration
 
@@ -75,6 +84,7 @@ Please excuse the fact that you have to include at least this
 
 ``` toml
 selector = "> "
+lame = false
 
 [theme.selected]
 [theme.default]
@@ -87,6 +97,7 @@ You can see all the options here.
 
 ``` toml
 selector = "> "
+lame = false
 
 [theme.selected]
 fg = [255, 255, 255]
