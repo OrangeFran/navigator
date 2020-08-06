@@ -2,7 +2,7 @@
 
 ### Small fixes
 
-- Do not allow scrolling over files you don't see (appears when searching for files).
+- ✅  ~~Do not allow scrolling over files you don't see (appears when searching for files).~~ 
 
 ### Plans
 
