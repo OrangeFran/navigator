@@ -1,5 +1,7 @@
 # Navigator
 
+![images/preview.png](Preview)
+
 Navigator allows you to navigate through heavy output with ease.
 You can feed it a string and it gives you in return a beautiful interface from where you can select or search.
 
