@@ -62,7 +62,7 @@ impl Widget for SearchWidget {
             " 🔍 Search ".to_string()
         }
     }
-    fn display(&self, lame: bool) -> Vec<Text> {
+    fn display(&self, _lame: bool) -> Vec<Text> {
         vec![Text::raw(self.content.clone())]
     }
 }
@@ -131,7 +131,7 @@ impl Widget for ListWidget {
         // add an informative text
         if vec.is_empty() {
             if lame {
-                vec.push(Text::raw(String::from("❎ Nothing found!")));
+                vec.push(Text::raw(String::from("Nothing found!")));
             } else {
                 vec.push(Text::raw(String::from("❎ Nothing found!")));
             }
@@ -150,7 +150,7 @@ impl ListWidget {
         }
 
         Self {
-            all: all,
+            all,
             path: vec![("".to_string(), 0)],
             selected: 0,
             search: String::new()
@@ -209,36 +209,39 @@ impl ListWidget {
 
             // check if it starts with \t
             // and with how many \t's and removes the automatically
-            count_idents_current = count_idents_next.clone(); 
+            count_idents_current = count_idents_next; 
             count_idents_next = find_identifiers(next_line.clone()); 
    
             next_line = next_line.replace(&sep, "");
 
             // entry has a new subdirectory
-            if count_idents_next > count_idents_current {
-                // add a new subdirectory and save the index
-                // as Some(index) in the current vectory
-                tuple_vec.push(Vec::new());
-                let new_index = &tuple_vec.len() - 1;
-                tuple_vec[current].push(Entry::new(current_line, Some(new_index)));
+            match count_idents_next {
+                // new subdirectory
+                c if c > count_idents_current => {
+                    // add a new subdirectory and save the index
+                    // as Some(index) in the current vectory
+                    tuple_vec.push(Vec::new());
+                    let new_index = &tuple_vec.len() - 1;
+                    tuple_vec[current].push(Entry::new(current_line, Some(new_index)));
                
-                // store information to find back
-                path.push(current);
-                // enter the subdirectory
-                current = new_index;
-            // directory gets closed
-            } else if count_idents_next < count_idents_current {
-                tuple_vec[current].push(Entry::new(current_line, None));
-                let difference = count_idents_current - count_idents_next;
+                    // store information to find back
+                    path.push(current);
+                    // enter the subdirectory
+                    current = new_index;
+                },
+                // directory gets closed
+                c if c < count_idents_current => {
+                    tuple_vec[current].push(Entry::new(current_line, None));
+                    let difference = count_idents_current - count_idents_next;
 
-                // get the previous index and update the path
-                current = path[path.len() - difference];
-                for _ in 0..difference {
-                    path.pop();
-                }
-            // staying in the directory
-            } else {
-                tuple_vec[current].push(Entry::new(current_line, None));
+                    // get the previous index and update the path
+                    current = path[path.len() - difference];
+                    for _ in 0..difference {
+                        path.pop();
+                    }
+                },
+                // in the same directory
+                _ => tuple_vec[current].push(Entry::new(current_line, None))
             }
         }
 

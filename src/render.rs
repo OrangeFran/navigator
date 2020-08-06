@@ -20,20 +20,18 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
     let color_rgb = |arr: config::Color| {
         if let Some(af) = arr.fg {
             if let Some(ab) = arr.bg {
-                return Style::default()
+                Style::default()
                     .fg(Color::Rgb(af[0], af[1], af[2]))
                     .bg(Color::Rgb(ab[0], ab[1], ab[2]))
             } else {
-                return Style::default()
+                Style::default()
                     .fg(Color::Rgb(af[0], af[1], af[2]))
             }
+        } else if let Some(ab) = arr.bg {
+            Style::default()
+                .bg(Color::Rgb(ab[0], ab[1], ab[2]))
         } else {
-            if let Some(ab) = arr.bg {
-                return Style::default()
-                    .bg(Color::Rgb(ab[0], ab[1], ab[2]))
-            } else {
-                return Style::default()
-            }
+            Style::default()
         }
     };
     
@@ -71,7 +69,7 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
         // the search bar
         let search_widget_content = search_widget.display(config.lame);
         let search_widget_title = search_widget.get_title(config.lame);
-        let mut search_widget_paragraph = Paragraph::new(search_widget_content.iter())
+        let search_widget_paragraph = Paragraph::new(search_widget_content.iter())
             .block({
                 match selected {
                     Selectable::Search => block_selected().title(search_widget_title.as_str()),
@@ -88,7 +86,7 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
        
         let list_widget_content = list_widget.display(config.lame);
         let list_widget_title = list_widget.get_title(config.lame);
-        let mut list_widget_list = List::new(list_widget_content.into_iter())
+        let list_widget_list = List::new(list_widget_content.into_iter())
             .block({
                 match selected {
                     Selectable::List => {

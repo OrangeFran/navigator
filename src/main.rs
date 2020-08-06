@@ -52,16 +52,14 @@ fn main() {
     let lame = matches.is_present("lame");
     // get the string, which should be processed
     let mut input = String::new();
-    match matches.is_present("stdin") {
-        false => {
-            input = matches.value_of("INPUT")
-                .expect("No INPUT provided").to_string();
-        }
-        // try to use INTPUT if defined
-        // else print an error
-        true => {
-            stdin().read_to_string(&mut input).expect("Failed to receive from stdin");
-        }
+    if matches.is_present("stdin") {
+        stdin().read_to_string(&mut input)
+            .expect("Failed to receive from stdin");
+    // try to use INTPUT if defined
+    // else print an error
+    } else {
+        input = matches.value_of("INPUT")
+            .expect("No INPUT provided").to_string();
     }
     // open input file and read to string
     let mut config = String::new();
@@ -144,7 +142,8 @@ fn main() {
                         // do not keep the search
                         Event::Key(Key::Esc) => {
                             selected = Selectable::List;
-                            list_widget.apply_search(String::new());
+                            search_widget.clear();
+                            list_widget.apply_search(search_widget.get_content());
                         }
 
                         _ => {}
