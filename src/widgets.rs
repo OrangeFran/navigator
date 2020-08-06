@@ -271,7 +271,7 @@ impl ListWidget {
             // scroll up, and 
             // if your're already at the bottom, nothing happens
             Direction::Down => {
-                if self.selected < self.get_current_folder().len() - 1 {
+                if self.selected < self.get_current_displayed().len() - 1 {
                     self.selected += 1;
                 }
             }
@@ -279,11 +279,23 @@ impl ListWidget {
     }
 
     pub fn get_name(&self) -> String {
-        self.get_current_folder()[self.selected].name.clone()
+        self.get_current_displayed()[self.selected].name.clone()
     }
 
     pub fn get_current_folder(&self) -> Vec<Entry> {
         self.all[self.path[self.path.len() - 1].1].clone()
+    }
+
+    pub fn get_current_displayed(&self) -> Vec<Entry> {
+        let mut vec = Vec::new();
+        for elem in self.get_current_folder() {
+            // filter out all the names
+            // that do not match with self.search
+            if self.search.is_empty() || elem.name.contains(&self.search) {
+                vec.push(elem)
+            }
+        }
+        vec
     }
 
     pub fn get_path(&self) -> String {
