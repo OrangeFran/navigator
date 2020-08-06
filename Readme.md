@@ -30,7 +30,7 @@ cargo install --path navigator
 
 The application uses a lot of emojis, because I personally like them.
 You can use the `lame` mode, if you don't like them.
-But if you do, please install the `noto-fonts-emoji` font.
+But if you do, please install the `noto-fonts-emoji` package.
 
 ### Usage
 
