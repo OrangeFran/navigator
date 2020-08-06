@@ -238,7 +238,7 @@ impl ListWidget {
     // expand -> enter a folder
     pub fn expand(&mut self) {
         // check if the element is actually expandable 
-        let current_element = self.get_current_folder()[self.selected].clone();
+        let current_element = self.get_current_displayed()[self.selected].clone();
         if let Some(new) = current_element.next {
             // update .path
             self.path.push((current_element.name, new));
