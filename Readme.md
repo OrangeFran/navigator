@@ -51,7 +51,7 @@ You can even use nested folder. It should all work.
 There are also some tests that prove it. Run `cargo test` for that.
 If there are errors, please open an issue.
 
-You can specify a custom seperator with -s or --sep.
+You can specify a custom seperator with `-s` or `--sep`.
 By default it's a tab (\t) as mentioned above.
 
 For some useful examples, take a look at the examples folder.
@@ -77,7 +77,7 @@ Here's a list:
 * **q**     
     * quit
 * **/**     
-    * search for something
+    * search for something with regular expressions
 * **esc**   
     * switch back to the list
 * **enter** 
