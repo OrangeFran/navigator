@@ -95,6 +95,7 @@ pub struct ListWidget {
     pub all: Vec<Vec<Entry>>, // represents all elements
     path: Vec<(String, usize)>, // specifies the path the users is currently in
     pub selected: usize, // represents the currently selected element
+    pub displayed: Vec<Entry>, // stores the currently displayed items
     search: String // store the search keywords (get used in .display)
 }
 
@@ -109,7 +110,7 @@ impl Widget for ListWidget {
     }
     fn display(&self, lame: bool) -> Vec<Text> {
         let mut vec = Vec::new();
-        for entry in &self.get_current_folder() {
+        for entry in &self.displayed {
             // add icons for better visbility
             let elem = if lame {
                 Text::raw(entry.name.clone())
@@ -119,12 +120,7 @@ impl Widget for ListWidget {
                     None => Text::raw(format!("   {}", entry.name))
                 }
             };
-            
-            // filter out all the names
-            // that do not match with self.search
-            if self.search.is_empty() || entry.name.contains(&self.search) {
-                vec.push(elem);
-            }
+            vec.push(elem);
         }
 
         // if the vector is empty
@@ -150,9 +146,10 @@ impl ListWidget {
         }
 
         Self {
-            all,
+            all: all.clone(),
             path: vec![("".to_string(), 0)],
             selected: 0,
+            displayed: all[0].clone(),
             search: String::new()
         } 
     }
@@ -251,7 +248,7 @@ impl ListWidget {
     // expand -> enter a folder
     pub fn expand(&mut self) {
         // check if the element is actually expandable 
-        let current_element = self.get_current_displayed()[self.selected].clone();
+        let current_element = self.displayed[self.selected].clone();
         if let Some(new) = current_element.next {
             // update .path
             self.path.push((current_element.name, new));
@@ -259,6 +256,8 @@ impl ListWidget {
             // to prevent index errors
             self.selected = 0;
         }
+        // update the .displayed
+        self.apply_search(self.search.clone());
     }
 
     // the opposite to expand
@@ -269,6 +268,8 @@ impl ListWidget {
             self.path.pop();
             self.selected = 0;
         }
+        // update the .displayed
+        self.apply_search(self.search.clone());
     }
 
     // scroll up/down
@@ -284,7 +285,7 @@ impl ListWidget {
             // scroll up, and 
             // if your're already at the bottom, nothing happens
             Direction::Down => {
-                if self.selected < self.get_current_displayed().len() - 1 {
+                if self.selected < self.displayed.len() - 1 {
                     self.selected += 1;
                 }
             }
@@ -292,7 +293,7 @@ impl ListWidget {
     }
 
     pub fn get_name(&self) -> String {
-        self.get_current_displayed()[self.selected].name.clone()
+        self.displayed[self.selected].name.clone()
     }
 
     pub fn get_current_folder(&self) -> Vec<Entry> {
@@ -330,12 +331,20 @@ impl ListWidget {
 
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword; 
+        self.displayed = Vec::new();
+        // filter out all the names
+        // that do not match with self.search
+        for entry in self.get_current_folder() {
+            if self.search.is_empty() || entry.name.contains(&self.search) {
+                self.displayed.push(entry);
+            }
+        }
         self.selected = 0;
     }
 
     // checks if the current folder actually
     // contains something or just the message that nothing was found
     pub fn empty_display(&self) -> bool {
-        self.get_current_displayed().is_empty()
+        self.displayed.is_empty()
     }
 }
