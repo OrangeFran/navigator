@@ -1,3 +1,7 @@
+extern crate tui;
+extern crate regex;
+
+use regex::Regex;
 use tui::widgets::Text;
 
 // represents a selection
@@ -331,15 +335,30 @@ impl ListWidget {
 
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword; 
-        self.displayed = Vec::new();
+        let current_folder = self.get_current_folder();
+        if self.search.is_empty() {
+            self.displayed = current_folder;
+            self.selected = 0;
+            return;
+        }
         // filter out all the names
         // that do not match with self.search
+        // if it's not empty
+        let re = Regex::new(&self.search);
+        // if the regex failed, do not search
+        // but instead return the search text as red
+        if re.is_err() {
+            self.selected = 0;
+            return;
+        }
+
+        let re = re.unwrap();
+        self.displayed = Vec::new();
         for entry in self.get_current_folder() {
-            if self.search.is_empty() || entry.name.contains(&self.search) {
+            if self.search.is_empty() || re.is_match(&entry.name) {
                 self.displayed.push(entry);
             }
         }
-        self.selected = 0;
     }
 
     // checks if the current folder actually
