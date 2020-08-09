@@ -335,10 +335,11 @@ impl ListWidget {
 
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword; 
+        self.selected = 0;
+
         let current_folder = self.get_current_folder();
         if self.search.is_empty() {
             self.displayed = current_folder;
-            self.selected = 0;
             return;
         }
         // filter out all the names
@@ -348,7 +349,6 @@ impl ListWidget {
         // if the regex failed, do not search
         // but instead return the search text as red
         if re.is_err() {
-            self.selected = 0;
             return;
         }
 
