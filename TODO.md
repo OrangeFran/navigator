@@ -10,4 +10,4 @@
 
 - [ ] Display some information about the stuff in the current folder, like size etc.
 - [ ] More configuration options.
-- [ ] Allow searching with regex.
+- [x] Allow searching with regex.
