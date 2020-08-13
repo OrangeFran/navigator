@@ -1,9 +1,8 @@
-extern crate clap;
-use clap::{Arg, App};
-
 mod widgets;
 mod render;
 mod config;
+
+use clap::{Arg, App};
 
 use widgets::Direction;
 use widgets::{Selectable, ListWidget, SearchWidget};
@@ -212,7 +211,7 @@ fn main() {
 }
 
 
-// Tests that ensure that the from_string 'algorithm' works.
+// tests that ensure that the from_string 'algorithm' works.
 // Cargo test will run everytime I changed something in from_string or ListWidget
 // to ensure stability.
 #[cfg(test)]
