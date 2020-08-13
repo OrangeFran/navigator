@@ -8,8 +8,8 @@ use widgets::Direction;
 use widgets::{Selectable, ListWidget, SearchWidget};
 
 use std::fs::File;
-use std::io::Read;
-use std::io::{stdin, stdout};
+use std::io::{Read, Write};
+use std::io::{stdin, stdout, stderr};
 
 use tui::terminal::Terminal;
 use tui::backend::TermionBackend;
@@ -87,9 +87,8 @@ fn main() {
     {    
         // use tty instead of stdin
         // because stdin could be blocked by the user input
-        let tty = File::open("/dev/tty")
-            .expect("Failed to open /dev/tty");
-
+        let tty = termion::get_tty().expect("Could not find tty!");
+            
         // set up the terminal -> into raw mode
         let raw = stdout().into_raw_mode().expect("Failed to put the terminal into raw mode");
         let backend = TermionBackend::new(raw);
@@ -206,7 +205,7 @@ fn main() {
     // needs to be outside the scope so the variables
     // terminal and raw get destroyed -> allows for normal output to stdout
     if !message.is_empty() {
-        println!("{}", message);
+        write!(stderr(), "{}\n", message);
     }
 }
 
