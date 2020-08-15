@@ -16,8 +16,8 @@ pub enum Selectable {
 // with Paragraphs, Lists and more creations of the
 // tui crate.
 pub trait Widget {
-    fn get_title(&self, lame: bool) -> String;
-    fn display(&self, lame: bool) -> Vec<Text>;
+    fn get_title(&self, lame: bool, prefix: String) -> String;
+    fn display(&self, lame: bool, prefix: String) -> Vec<Text>;
 }
 
 // a default entry with a name
@@ -59,14 +59,14 @@ pub struct SearchWidget {
 }
 
 impl Widget for SearchWidget {
-    fn get_title(&self, lame: bool) -> String {
+    fn get_title(&self, lame: bool, prefix: String) -> String {
         if lame {
             " Search ".to_string()
         } else {
-            " 🔍 Search ".to_string()
+            format!(" {} Search ", prefix)
         }
     }
-    fn display(&self, _lame: bool) -> Vec<Text> {
+    fn display(&self, _lame: bool, prefix: String) -> Vec<Text> {
         vec![Text::raw(self.content.clone())]
     }
 }
@@ -104,15 +104,15 @@ pub struct ListWidget {
 }
 
 impl Widget for ListWidget {
-    fn get_title(&self, lame: bool) -> String {
+    fn get_title(&self, lame: bool, prefix: String) -> String {
         let path = self.get_path();
         if lame {
             format!(" {} ", path)
         } else {
-            format!(" 📂 {} ", path)
+            format!(" {} {} ", prefix, path)
         }
     }
-    fn display(&self, lame: bool) -> Vec<Text> {
+    fn display(&self, lame: bool, prefix: String) -> Vec<Text> {
         let mut vec = Vec::new();
         for entry in &self.displayed {
             // add icons for better visbility
@@ -120,7 +120,7 @@ impl Widget for ListWidget {
                 Text::raw(entry.name.clone())
             } else {
                 match entry.next {
-                    Some(_) => Text::raw(format!("📁 {}", entry.name)),
+                    Some(_) => Text::raw(format!("{} {}", prefix, entry.name)),
                     None => Text::raw(format!("   {}", entry.name))
                 }
             };

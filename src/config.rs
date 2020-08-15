@@ -36,6 +36,14 @@ pub struct Color {
     pub bg: Option<[u8; 3]>
 }
 
+// a prefix (in front of the titles)
+#[derive(Deserialize, Clone)]
+pub struct Prefix {
+    pub search: String,
+    pub list: String,
+    pub folder: String
+}
+
 #[derive(Deserialize, Clone)]
 pub struct Theme {
     pub selected: Color,
@@ -44,6 +52,7 @@ pub struct Theme {
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
+    pub prefixes: Prefix,
     pub theme: Theme,
     pub selector: String,
     pub lame: bool
@@ -59,6 +68,11 @@ pub fn read_config(string: &str, lame: bool) -> Config {
     // else use the default values
     } else {
         Config {
+            prefixes: Prefix {
+                search: "🔍 ".to_string(),
+                list: "📂 ".to_string(),
+                folder: "📁 ".to_string()
+            },
             theme: Theme {
                 selected: Color { 
                     fg: None,

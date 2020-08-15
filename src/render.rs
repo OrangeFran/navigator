@@ -67,8 +67,8 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
             .split(f.size());
 
         // the search bar
-        let search_widget_content = search_widget.display(config.lame);
-        let search_widget_title = search_widget.get_title(config.lame);
+        let search_widget_content = search_widget.display(config.lame, String::new());
+        let search_widget_title = search_widget.get_title(config.lame, config.prefixes.search.clone());
         let search_widget_paragraph = Paragraph::new(search_widget_content.iter())
             .block({
                 match selected {
@@ -84,8 +84,8 @@ pub fn draw<B: Backend>(terminal: &mut Terminal<B>, list_widget: &ListWidget, se
         // the scrollable list view
         let mut list_widget_state = ListState::default();
        
-        let list_widget_content = list_widget.display(config.lame);
-        let list_widget_title = list_widget.get_title(config.lame);
+        let list_widget_content = list_widget.display(config.lame, config.prefixes.folder.clone());
+        let list_widget_title = list_widget.get_title(config.lame, config.prefixes.list.clone());
         let list_widget_list = List::new(list_widget_content.into_iter())
             .block({
                 match selected {
