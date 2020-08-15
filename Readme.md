@@ -105,28 +105,11 @@ lame = false
 [theme.default]
 ```
 
-in you config file to work. I'm working on making everything optional.
+in your config file to work. I'm working on making everything optional.
 But I don't really like my implementation. I'd be happy to take suggestions.
 
-You can see all the options here.
-
-``` toml
-selector = "> "
-lame = false
-
-[theme.selected]
-fg = [255, 255, 255]
-# bg = ...
-
-[theme.default]
-fg = [40, 40, 40]
-# bg = ...
-
-[prefixes]
-search = "🔎 "
-list = "📖 "
-folder = "📂 "
-```
+You can see **all** avaible options in this
+[file](https://github.com/OrangeFran/navigator/tree/master/config/config.toml).
 
 ### Dependencies
 
