@@ -121,6 +121,11 @@ fg = [255, 255, 255]
 [theme.default]
 fg = [40, 40, 40]
 # bg = ...
+
+[prefixes]
+search = "🔎 "
+list = "📖 "
+folder = "📂 "
 ```
 
 ### Dependencies
