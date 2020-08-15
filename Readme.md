@@ -37,6 +37,12 @@ But if you do, please install the `noto-fonts-emoji` package.
 
 ### Usage
 
+First of all, while doing this project I've had some trouble with unix-streams.
+Especially when I wanted to allow piping the output to another command.
+I solved this by using the sdtout for the terminal user interface, but I used the stderr to print out the selected item.
+So if you want to pipe the output, you can use `navigator ... 2> file` and then get it via `cat file` or something else.
+Look at an example in the `examples/` folder to learn more.
+
 There are some flags you can use. Look at them with `--help`.
 It's pretty basic for now. You can pass in a string to process or read from standard input with `--stdin`.
 
@@ -54,7 +60,6 @@ If there are errors, please open an issue.
 You can specify a custom seperator with `-s` or `--sep`.
 By default it's a tab (\t) as mentioned above.
 
-For some useful examples, take a look at the examples folder.
 This tool is mostly built for people who want to script stuff.
 But you can sure use it for everything you want to.
 If you'd like to share a cool script, you can make a pull request.
