@@ -128,5 +128,7 @@ fg = [40, 40, 40]
 [tui-rs](https://github.com/fdehau/tui-rs)<br>
 [termion](https://github.com/redox-os/termion.git)
 
+[clap](https://github.com/clap-rs/clap)
+
 [toml](https://github.com/alexcrichton/toml-rs)<br>
 [serde](https://github.com/serde-rs/serde)
