@@ -44,7 +44,7 @@ So if you want to pipe the output, you can use `navigator ... 2> file` and then 
 Look at an example in the `examples/` folder to learn more.
 
 There are some flags you can use. Look at them with `--help`.
-It's pretty basic for now. You can pass in a string to process or read from standard input with `--stdin`.
+It's pretty basic for now. You can pass in a string to process or read from standard input.
 
 After the string is read, it get's parsed into a list of folders and files.
 By default it seperatres folders and subfolders with a tab e.q.
