@@ -25,40 +25,35 @@ fn main() {
         .author("Finn H.")
         .about("Look at output with ease!")
         .arg(Arg::with_name("INPUT")
-             .help("Sets the string to use")
-             .required_unless("stdin"))
-        .arg(Arg::with_name("stdin")
-             .long("stdin")
-             .help("Gets input over stdin"))
+             .help("Specify input, reads from stdin if none"))
         .arg(Arg::with_name("seperator")
              .short("s")
              .long("sep")
              .takes_value(true)
-             .help("Sets the seperator that the parsing is based on"))
+             .help("Specify the seperator that the parsing is based on"))
         .arg(Arg::with_name("config")
              .short("c")
              .long("config")
              .value_name("FILE")
              .takes_value(true)
-             .help("Sets the path to the config file"))
+             .help("Specify the path to the config file"))
         .arg(Arg::with_name("lame")
              .short("l")
              .long("lame")
-             .help("Hides emojis"))
+             .help("Hide emojis"))
         .get_matches();
 
     // specifies if emojis should be hidden
     let lame = matches.is_present("lame");
     // get the string, which should be processed
     let mut input = String::new();
-    if matches.is_present("stdin") {
+    // try to use INTPUT if defined
+    // else, read from the standard input
+    if let Some(r) = matches.value_of("INPUT") {
+        input = r.to_string();
+    } else {
         stdin().read_to_string(&mut input)
             .expect("Failed to receive from stdin");
-    // try to use INTPUT if defined
-    // else print an error
-    } else {
-        input = matches.value_of("INPUT")
-            .expect("No INPUT provided").to_string();
     }
     // open input file and read to string
     let mut config = String::new();
