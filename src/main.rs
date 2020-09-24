@@ -45,16 +45,18 @@ fn main() {
 
     // specifies if emojis should be hidden
     let lame = matches.is_present("lame");
+
     // get the string, which should be processed
-    let mut input = String::new();
     // try to use INTPUT if defined
     // else, read from the standard input
+    let mut input = String::new();
     if let Some(r) = matches.value_of("INPUT") {
         input = r.to_string();
     } else {
         stdin().read_to_string(&mut input)
             .expect("Failed to receive from stdin");
     }
+
     // open input file and read to string
     let mut config = String::new();
     if let Some(c) = matches.value_of("config") {
@@ -63,22 +65,23 @@ fn main() {
             .read_to_string(&mut config)
             .expect("Failed to read config");
     }
+
     // config::read_config returns default values if the string is empty
     // and takes additional vlaues which can be configured at runtime
     // these can be also defined in the config file, but could get overwritten
     let config = config::read_config(config.as_str(), lame);
     // check if a seperator was provided
     // else fall back to \t (tab)
-    let seperator = match matches.value_of("seperator") {
-        Some(s) => s.to_string(),
-        None => "\t".to_string()
-    };
-
+    let seperator = matches.value_of("seperator")
+        .unwrap_or("\t").to_string();
 
     // message that get's outputted
     // gets filled inside the for loop
     let mut message = String::new();
 
+    // i'm too stupid to deinitalize the stdout grabber
+    // that termion create so I put that stuff into brackets
+    // so it deinitializes it automatically
     {    
         // use tty instead of stdin
         // because stdin could be blocked by the user input
