@@ -69,7 +69,10 @@ impl Widget for SearchWidget {
         // check if the regex is valid
         // if it's not -> bold red
         if Regex::new(self.content.as_str()).is_err() {
-            vec![Text::styled(self.content.clone(), Style::new().fg(Color::Red).modifier(Modifier::BOLD))]
+            vec![Text::styled(
+                self.content.clone(),
+                Style::new().fg(Color::Red).modifier(Modifier::BOLD)
+            )]
         } else {
             vec![Text::raw(self.content.clone())]
         }
@@ -332,19 +335,6 @@ impl ListWidget {
         self.all[self.path[self.path.len() - 1].1].clone()
     }
 
-    pub fn get_current_displayed(&self) -> Vec<Entry> {
-        let mut vec = Vec::new();
-        for elem in self.get_current_folder() {
-            // filter out all the names
-            // that do not match with self.search
-            if self.search.is_empty() || elem.name.contains(&self.search) {
-                vec.push(elem)
-            }
-        }
-
-        vec
-    }
-
     pub fn get_path(&self) -> String {
         let mut output = String::from("/");
         for (s, _) in &self.path[1..] {
@@ -374,8 +364,7 @@ impl ListWidget {
         // that do not match with self.search
         // if it's not empty
         let re = Regex::new(&self.search);
-        // if the regex failed, do not search
-        // but instead return the search text as red (to be implemented)
+        // if the regex failed, do nothing
         if re.is_err() {
             return;
         }

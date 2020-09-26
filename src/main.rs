@@ -100,7 +100,7 @@ fn main() {
         let mut selected = Selectable::List;
         let mut search_widget = SearchWidget::new();
         let mut list_widget = ListWidget::from_string(input, seperator);
-        let mut info_widget = InfoWidget::new(list_widget.get_current_displayed().len());
+        let mut info_widget = InfoWidget::new(list_widget.displayed.len());
 
         // draw the layout for the first time
         render::draw(&mut terminal, &list_widget, &search_widget, &info_widget, &selected, &config);
@@ -131,11 +131,13 @@ fn main() {
                         Event::Key(Key::Char(c)) => {
                             search_widget.add(c);
                             list_widget.apply_search(search_widget.get_content());
+                            info_widget.update(list_widget.displayed.len());
                         }
                         // remove the last char from the search
                         Event::Key(Key::Backspace) => {
                             search_widget.pop();
                             list_widget.apply_search(search_widget.get_content());
+                            info_widget.update(list_widget.displayed.len());
                         }
                         // switch back to the list view
                         // do not keep the search
@@ -143,6 +145,7 @@ fn main() {
                             selected = Selectable::List;
                             search_widget.clear();
                             list_widget.apply_search(search_widget.get_content());
+                            info_widget.update(list_widget.displayed.len());
                         }
 
                         _ => {}
@@ -163,7 +166,7 @@ fn main() {
                         // enter the folder and directly switch to the search
                         Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
                             list_widget.expand();
-                            info_widget.update(list_widget.get_current_displayed().len());
+                            info_widget.update(list_widget.displayed.len());
                             if list_widget.empty_display() {
                                 selected = Selectable::Search; 
                             }
@@ -173,7 +176,7 @@ fn main() {
                         // enter the folder and directly switch to the search
                         Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
                             list_widget.back();
-                            info_widget.update(list_widget.get_current_displayed().len());
+                            info_widget.update(list_widget.displayed.len());
                             if list_widget.empty_display() {
                                 selected = Selectable::Search; 
                             }
