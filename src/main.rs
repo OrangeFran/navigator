@@ -163,6 +163,7 @@ fn main() {
                         // enter the folder and directly switch to the search
                         Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
                             list_widget.expand();
+                            info_widget.update(list_widget.get_current_displayed().len());
                             if list_widget.empty_display() {
                                 selected = Selectable::Search; 
                             }
@@ -172,6 +173,7 @@ fn main() {
                         // enter the folder and directly switch to the search
                         Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
                             list_widget.back();
+                            info_widget.update(list_widget.get_current_displayed().len());
                             if list_widget.empty_display() {
                                 selected = Selectable::Search; 
                             }

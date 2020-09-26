@@ -96,7 +96,6 @@ impl SearchWidget {
 pub struct InfoWidget {
     pub count: usize // amount of elements in folder
 }
-
 impl Widget for InfoWidget {
     fn get_title(&self, lame: bool, prefix: String) -> String {
         String::new()
@@ -111,6 +110,9 @@ impl InfoWidget {
         Self {
             count: count
         }
+    }
+    pub fn update(&mut self, new_count: usize) {
+        self.count = new_count;
     }
 }
 
@@ -140,7 +142,7 @@ impl Widget for ListWidget {
             } else {
                 match entry.next {
                     Some(_) => Text::raw(format!("{} {}", prefix, entry.name)),
-                    None => Text::raw(format!("   {}", entry.name))
+                    None => Text::raw(format!("    {}", entry.name))
                 }
             };
             vec.push(elem);
