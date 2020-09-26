@@ -344,6 +344,7 @@ impl ListWidget {
         output
     }
 
+    // makes testing easier
     pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
         self.all.iter().map(|v| {
             v.iter().map(|e| { e.revert() })
