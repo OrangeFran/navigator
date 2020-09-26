@@ -3,6 +3,7 @@ extern crate regex;
 
 use regex::Regex;
 use tui::widgets::Text;
+use tui::style::{Style, Modifier, Color};
 
 // represents a selection
 // of all selctable widgets
@@ -64,8 +65,14 @@ impl Widget for SearchWidget {
             format!(" {} Search ", prefix)
         }
     }
-    fn display(&self, _lame: bool, prefix: String) -> Vec<Text> {
-        vec![Text::raw(self.content.clone())]
+    fn display(&self, _lame: bool, _prefix: String) -> Vec<Text> {
+        // check if the regex is valid
+        // if it's not -> bold red
+        if Regex::new(self.content.as_str()).is_err() {
+            vec![Text::styled(self.content.clone(), Style::new().fg(Color::Red).modifier(Modifier::BOLD))]
+        } else {
+            vec![Text::raw(self.content.clone())]
+        }
     }
 }
 
@@ -97,10 +104,10 @@ pub struct InfoWidget {
     pub count: usize // amount of elements in folder
 }
 impl Widget for InfoWidget {
-    fn get_title(&self, lame: bool, prefix: String) -> String {
+    fn get_title(&self, _lame: bool, _prefix: String) -> String {
         String::new()
     }
-    fn display(&self, lame: bool, prefix: String) -> Vec<Text> {
+    fn display(&self, _lame: bool, _prefix: String) -> Vec<Text> {
         vec![Text::raw(format!("{}", self.count)).clone()]
     }
 }
@@ -368,7 +375,7 @@ impl ListWidget {
         // if it's not empty
         let re = Regex::new(&self.search);
         // if the regex failed, do not search
-        // but instead return the search text as red
+        // but instead return the search text as red (to be implemented)
         if re.is_err() {
             return;
         }
