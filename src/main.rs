@@ -5,7 +5,7 @@ mod config;
 use clap::{Arg, App};
 
 use widgets::Direction;
-use widgets::{Selectable, ListWidget, SearchWidget};
+use widgets::{Selectable, ListWidget, InfoWidget, SearchWidget};
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -55,6 +55,8 @@ fn main() {
     } else {
         stdin().read_to_string(&mut input)
             .expect("Failed to receive from stdin");
+        // reading from stdin adds a '\n' to the end -> remove that
+        input.remove(input.len() - 1);
     }
 
     // open input file and read to string
@@ -98,9 +100,10 @@ fn main() {
         let mut selected = Selectable::List;
         let mut search_widget = SearchWidget::new();
         let mut list_widget = ListWidget::from_string(input, seperator);
+        let mut info_widget = InfoWidget::new(list_widget.get_current_displayed().len());
 
         // draw the layout for the first time
-        render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
+        render::draw(&mut terminal, &list_widget, &search_widget, &info_widget, &selected, &config);
 
         // start listening
         for event in tty.events() {
@@ -195,7 +198,7 @@ fn main() {
             }
 
             // update the tui
-            render::draw(&mut terminal, &list_widget, &search_widget, &selected, &config);
+            render::draw(&mut terminal, &list_widget, &search_widget, &info_widget, &selected, &config);
         }
     }
 

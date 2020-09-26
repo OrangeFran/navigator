@@ -11,10 +11,8 @@ pub enum Selectable {
     List
 }
 
-// This needs to be implemented
-// by all widgets to ensure compaitibility
-// with Paragraphs, Lists and more creations of the
-// tui crate.
+// This needs to be implemented by all widgets to ensure compaitibility
+// with Paragraphs, Lists and more creations of the tui crate.
 pub trait Widget {
     fn get_title(&self, lame: bool, prefix: String) -> String;
     fn display(&self, lame: bool, prefix: String) -> Vec<Text>;
@@ -95,11 +93,32 @@ impl SearchWidget {
     }
 }
 
+pub struct InfoWidget {
+    pub count: usize // amount of elements in folder
+}
+
+impl Widget for InfoWidget {
+    fn get_title(&self, lame: bool, prefix: String) -> String {
+        String::new()
+    }
+    fn display(&self, lame: bool, prefix: String) -> Vec<Text> {
+        vec![Text::raw(format!("{}", self.count)).clone()]
+    }
+}
+
+impl InfoWidget {
+    pub fn new(count: usize) -> Self {
+        Self {
+            count: count
+        }
+    }
+}
+
 pub struct ListWidget {
     pub all: Vec<Vec<Entry>>, // represents all elements
-    path: Vec<(String, usize)>, // specifies the path the users is currently in
     pub selected: usize, // represents the currently selected element
     pub displayed: Vec<Entry>, // stores the currently displayed items
+    path: Vec<(String, usize)>, // specifies the path the users is currently in
     search: String // store the search keywords (get used in .display)
 }
 
