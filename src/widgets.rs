@@ -152,9 +152,9 @@ impl Widget for ListWidget {
         // add an informative text
         if vec.is_empty() {
             if lame {
-                vec.push(Text::raw(String::from("Nothing found!")));
+                vec.push(Text::raw(String::from("    Nothing found!")));
             } else {
-                vec.push(Text::raw(String::from("❎ Nothing found!")));
+                vec.push(Text::raw(String::from("❎  Nothing found!")));
             }
         }
         vec
