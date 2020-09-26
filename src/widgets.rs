@@ -375,6 +375,11 @@ impl ListWidget {
         for entry in self.get_current_folder() {
             if self.search.is_empty() || re.is_match(&entry.name) {
                 self.displayed.push(entry);
+                // color the regex statements
+                // (need some time for research to find out
+                //  how to style single characters)
+                // for mat in re.find_iter(&entry.name) {   
+                // }
             }
         }
     }
