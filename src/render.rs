@@ -101,7 +101,7 @@ pub fn draw<B: Backend>(
         let info_widget_paragraph = Paragraph::new(info_widget_content)
             .block(block_default())
             .style(Style::default().fg(Color::White))
-            .alignment(Alignment::Center)
+            .alignment(Alignment::Right)
             .wrap(Wrap { trim: false } );
         // ... continue implementing the info widget
 
