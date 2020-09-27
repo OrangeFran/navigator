@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tui = "0.9.3"
+tui = "0.11.0"
 termion = "1.5.5"
 clap = "2.33.1"
 
