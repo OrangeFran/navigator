@@ -34,13 +34,17 @@ pub trait ListWidget {
 #[derive(Clone, Debug)]
 pub struct Entry {
     name: String,
+    spans: Vec<Span<'static>>,
     next: Option<usize>
 }
 
 impl Entry {
     pub fn new(n: String, nx: Option<usize>) -> Self {
         Self {
-            name: n,
+            name: n.clone(),
+            // just the default for now, 
+            // gets changed anyway if necessary
+            spans: vec![Span::from(n)],
             next: nx
         }
     }
@@ -155,15 +159,14 @@ impl ListWidget for ContentWidget {
         let mut vec = Vec::new();
         for entry in &self.displayed {
             // add icons for better visbility
-            let elem = if lame {
-                ListItem::new(Text::from(entry.name.as_str()))
+            let mut spans = if !lame && entry.next.is_some() {
+                // add the prefix
+                vec![Span::from(format!("{}  ", prefix))]
             } else {
-                match entry.next {
-                    Some(_) => ListItem::new(Text::from(Span::raw(format!("{} {}", prefix, entry.name)))),
-                    None => ListItem::new(Text::from(Span::raw(format!("    {}", entry.name))))
-                }
+                vec![Span::from("   ")]
             };
-            vec.push(elem);
+            spans.extend(entry.spans.clone());
+            vec.push(ListItem::new(Text::from(Spans::from(spans))));
         }
 
         // if the vector is empty
@@ -380,14 +383,34 @@ impl ContentWidget {
 
         let re = re.unwrap();
         self.displayed = Vec::new();
-        for entry in self.get_current_folder() {
+        for mut entry in self.get_current_folder() {
             if self.search.is_empty() || re.is_match(&entry.name) {
-                self.displayed.push(entry);
+                // self.displayed.push(entry);
                 // color the regex statements
-                // (need some time for research to find out
-                //  how to style single characters)
-                // for mat in re.find_iter(&entry.name) {   
-                // }
+                let mut name_text = Vec::new();
+                let mut index_before = 0;
+                for mat in re.find_iter(&entry.name) {   
+                    // add the string up until the mathing chars
+                    if index_before != mat.start() {
+                        name_text.push(Span::from(
+                            entry.name.get(index_before..mat.start()).unwrap().to_string()
+                        ));
+                    }
+                    // add the matching chars styled
+                    name_text.push(Span::styled(
+                        entry.name.get(mat.start()..mat.end()).unwrap().to_string(), 
+                        Style::default().fg(Color::Blue)
+                    ));
+                    index_before = mat.end().clone();
+                }
+                // add the rest of the name
+                name_text.push(Span::from(
+                    entry.name.get(index_before..entry.name.len()).unwrap().to_string()
+                ));
+                // finally push it to the displayed vector
+                // which holds all entries that should get displayed to the user
+                entry.spans = name_text;
+                self.displayed.push(entry);
             }
         }
     }
