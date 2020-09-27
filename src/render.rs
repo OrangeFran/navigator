@@ -1,20 +1,20 @@
-use super::widgets::Widget;
-use super::widgets::{ListWidget, SearchWidget, InfoWidget, Selectable};
 use super::config;
+use super::widgets::{ParagraphWidget, ListWidget};
+use super::widgets::{ContentWidget, SearchWidget, InfoWidget, Selectable};
 
 use tui::backend::Backend;
 use tui::terminal::Terminal;
 
 use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
-use tui::widgets::{Block, Borders, List, ListState, Paragraph};
+use tui::widgets::{Wrap, Block, Borders, List, ListState, Paragraph};
 
 // draws the layout to the terminal
 // this function gets called everytime something changes
 // so everything gets redrawn
 pub fn draw<B: Backend>(
     terminal: &mut Terminal<B>, 
-    list_widget: &ListWidget, search_widget: &SearchWidget, info_widget: &InfoWidget,
+    list_widget: &ContentWidget, search_widget: &SearchWidget, info_widget: &InfoWidget,
     selected: &Selectable, config: &config::Config
 ) {
     // create default values with the
@@ -84,7 +84,7 @@ pub fn draw<B: Backend>(
         // the search bar
         let search_widget_content = search_widget.display(config.lame, String::new());
         let search_widget_title = search_widget.get_title(config.lame, config.prefixes.search.clone());
-        let search_widget_paragraph = Paragraph::new(search_widget_content.iter())
+        let search_widget_paragraph = Paragraph::new(search_widget_content)
             .block({
                 match selected {
                     Selectable::Search => block_selected().title(search_widget_title.as_str()),
@@ -93,23 +93,23 @@ pub fn draw<B: Backend>(
             })
             .style(Style::default().fg(Color::White))
             .alignment(Alignment::Left)
-            .wrap(true);
+            .wrap(Wrap { trim: false } );
 
         // the info widget
         let info_widget_content = info_widget.display(config.lame, String::new());
         let info_widget_title = info_widget.get_title(config.lame, String::new());
-        let info_widget_paragraph = Paragraph::new(info_widget_content.iter())
+        let info_widget_paragraph = Paragraph::new(info_widget_content)
             .block(block_default())
             .style(Style::default().fg(Color::White))
             .alignment(Alignment::Center)
-            .wrap(true);
+            .wrap(Wrap { trim: false } );
         // ... continue implementing the info widget
 
         // the scrollable list view
         let mut list_widget_state = ListState::default();
         let list_widget_content = list_widget.display(config.lame, config.prefixes.folder.clone());
         let list_widget_title = list_widget.get_title(config.lame, config.prefixes.list.clone());
-        let list_widget_list = List::new(list_widget_content.into_iter())
+        let list_widget_list = List::new(list_widget_content)
             .block({
                 match selected {
                     Selectable::List => {
@@ -119,7 +119,7 @@ pub fn draw<B: Backend>(
                     _ => block_default().title(list_widget_title.as_str())
                 }
             })
-            .highlight_style(Style::default().modifier(Modifier::BOLD))
+            .highlight_style(Style::default().add_modifier(Modifier::BOLD))
             .highlight_symbol(config.selector.as_str());
 
         // // highlight the current selected widget

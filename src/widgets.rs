@@ -2,7 +2,9 @@ extern crate tui;
 extern crate regex;
 
 use regex::Regex;
-use tui::widgets::Text;
+
+use tui::widgets::ListItem;
+use tui::text::{Text, Spans, Span};
 use tui::style::{Style, Modifier, Color};
 
 // represents a selection
@@ -12,11 +14,16 @@ pub enum Selectable {
     List
 }
 
-// This needs to be implemented by all widgets to ensure compaitibility
-// with Paragraphs, Lists and more creations of the tui crate.
-pub trait Widget {
+// this needs to be implemented by all paragraph widgets
+pub trait ParagraphWidget {
     fn get_title(&self, lame: bool, prefix: String) -> String;
-    fn display(&self, lame: bool, prefix: String) -> Vec<Text>;
+    fn display(&self, lame: bool, prefix: String) -> Text;
+}
+
+// this needs to be implemented by all list widgets
+pub trait ListWidget {
+    fn get_title(&self, lame: bool, prefix: String) -> String;
+    fn display(&self, lame: bool, prefix: String) -> Vec<ListItem>;
 }
 
 // a default entry with a name
@@ -45,7 +52,7 @@ impl Entry {
 }
 
 // Directions
-// needed by the ListWidget to
+// needed by the ContentWidget to
 // represent scrolling directions
 // for better readability.
 pub enum Direction {
@@ -57,7 +64,7 @@ pub struct SearchWidget {
     pub content: String // represents the inputted chars
 }
 
-impl Widget for SearchWidget {
+impl ParagraphWidget for SearchWidget {
     fn get_title(&self, lame: bool, prefix: String) -> String {
         if lame {
             " Search ".to_string()
@@ -65,16 +72,17 @@ impl Widget for SearchWidget {
             format!(" {} Search ", prefix)
         }
     }
-    fn display(&self, _lame: bool, _prefix: String) -> Vec<Text> {
+    fn display(&self, _lame: bool, _prefix: String) -> Text {
         // check if the regex is valid
         // if it's not -> bold red
         if Regex::new(self.content.as_str()).is_err() {
-            vec![Text::styled(
+            let spans = Spans::from(vec![Span::styled(
                 self.content.clone(),
-                Style::new().fg(Color::Red).modifier(Modifier::BOLD)
-            )]
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
+            )]);
+            Text::from(spans)
         } else {
-            vec![Text::raw(self.content.clone())]
+            Text::from(self.content.as_str())
         }
     }
 }
@@ -106,12 +114,12 @@ impl SearchWidget {
 pub struct InfoWidget {
     pub count: usize // amount of elements in folder
 }
-impl Widget for InfoWidget {
+impl ParagraphWidget for InfoWidget {
     fn get_title(&self, _lame: bool, _prefix: String) -> String {
         String::new()
     }
-    fn display(&self, _lame: bool, _prefix: String) -> Vec<Text> {
-        vec![Text::raw(format!("{}", self.count)).clone()]
+    fn display(&self, _lame: bool, _prefix: String) -> Text {
+        Text::from(Span::raw(self.count.to_string()))
     }
 }
 
@@ -126,7 +134,7 @@ impl InfoWidget {
     }
 }
 
-pub struct ListWidget {
+pub struct ContentWidget {
     pub all: Vec<Vec<Entry>>, // represents all elements
     pub selected: usize, // represents the currently selected element
     pub displayed: Vec<Entry>, // stores the currently displayed items
@@ -134,7 +142,7 @@ pub struct ListWidget {
     search: String // store the search keywords (get used in .display)
 }
 
-impl Widget for ListWidget {
+impl ListWidget for ContentWidget {
     fn get_title(&self, lame: bool, prefix: String) -> String {
         let path = self.get_path();
         if lame {
@@ -143,16 +151,16 @@ impl Widget for ListWidget {
             format!(" {} {} ", prefix, path)
         }
     }
-    fn display(&self, lame: bool, prefix: String) -> Vec<Text> {
+    fn display(&self, lame: bool, prefix: String) -> Vec<ListItem> {
         let mut vec = Vec::new();
         for entry in &self.displayed {
             // add icons for better visbility
             let elem = if lame {
-                Text::raw(entry.name.clone())
+                ListItem::new(Text::from(entry.name.as_str()))
             } else {
                 match entry.next {
-                    Some(_) => Text::raw(format!("{} {}", prefix, entry.name)),
-                    None => Text::raw(format!("    {}", entry.name))
+                    Some(_) => ListItem::new(Text::from(Span::raw(format!("{} {}", prefix, entry.name)))),
+                    None => ListItem::new(Text::from(Span::raw(format!("    {}", entry.name))))
                 }
             };
             vec.push(elem);
@@ -162,18 +170,18 @@ impl Widget for ListWidget {
         // add an informative text
         if vec.is_empty() {
             if lame {
-                vec.push(Text::raw(String::from("    Nothing found!")));
+                vec.push(ListItem::new(Text::from("    Nothing found!")));
             } else {
-                vec.push(Text::raw(String::from("❎  Nothing found!")));
+                vec.push(ListItem::new(Text::from("❎  Nothing found!")));
             }
         }
         vec
     }
 }
 
-impl ListWidget {
+impl ContentWidget {
     // simply populate a basic
-    // ListWidget with default values
+    // ContentWidget with default values
     pub fn new(all: Vec<Vec<Entry>>) -> Self {
         // abort if v has no entries
         if all.is_empty() {
@@ -189,7 +197,7 @@ impl ListWidget {
         } 
     }
 
-    // converts the given string to a ListWidget    
+    // converts the given string to a ContentWidget    
     // this is probably the holy method, that makes this project something usable
     pub fn from_string(string: String, sep: String) -> Self {
         // first, try with \t

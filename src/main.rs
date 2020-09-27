@@ -5,7 +5,7 @@ mod config;
 use clap::{Arg, App};
 
 use widgets::Direction;
-use widgets::{Selectable, ListWidget, InfoWidget, SearchWidget};
+use widgets::{Selectable, ContentWidget, InfoWidget, SearchWidget};
 
 use std::fs::File;
 use std::io::{Read, Write};
@@ -82,7 +82,7 @@ fn main() {
     let mut message = String::new();
 
     // i'm too stupid to deinitalize the stdout grabber
-    // that termion create so I put that stuff into brackets
+    // that termion creates so I put that stuff into brackets
     // so it deinitializes it automatically
     {    
         // use tty instead of stdin
@@ -99,7 +99,7 @@ fn main() {
 
         let mut selected = Selectable::List;
         let mut search_widget = SearchWidget::new();
-        let mut list_widget = ListWidget::from_string(input, seperator);
+        let mut list_widget = ContentWidget::from_string(input, seperator);
         let mut info_widget = InfoWidget::new(list_widget.displayed.len());
 
         // draw the layout for the first time
@@ -217,11 +217,11 @@ fn main() {
 
 
 // tests that ensure that the from_string 'algorithm' works.
-// Cargo test will run everytime I changed something in from_string or ListWidget
+// Cargo test will run everytime I changed something in from_string or ContentWidget
 // to ensure stability.
 #[cfg(test)]
 mod tests {
-    use super::widgets::ListWidget;
+    use super::widgets::ContentWidget;
     // functions to create elements for a vector
     // make writing tests a whole less verbose
     fn single() -> (String, Option<usize>) {
@@ -238,7 +238,7 @@ Single
 Single");
         let seperator = String::from("\t");
         assert_eq!(
-            ListWidget::from_string(input, seperator).get_all_reverted(),
+            ContentWidget::from_string(input, seperator).get_all_reverted(),
             vec![vec![single(), single(), single()]]
         );
     }
@@ -248,7 +248,7 @@ Single");
         let input = String::from("Single\nFolder\n\tSingle\nSingle");
         let seperator = String::from("\t");
         assert_eq!(
-            ListWidget::from_string(input, seperator).get_all_reverted(),
+            ContentWidget::from_string(input, seperator).get_all_reverted(),
             vec![vec![single(), folder(1), single()], vec![single()]]
         );
     }
@@ -259,7 +259,7 @@ Single");
         let seperator = String::from("\t");
         // sorry, it's a little long, hope you can read it
         assert_eq!(
-            ListWidget::from_string(input, seperator).get_all_reverted(),
+            ContentWidget::from_string(input, seperator).get_all_reverted(),
             vec![vec![single(), folder(1), single()], vec![single(), folder(2), folder(4)], vec![folder(3)], vec![single()], vec![single()]]
         );
     }
@@ -270,7 +270,7 @@ Single");
         let seperator = String::from("tab");
         // sorry, it's a little long, hope you can read it
         assert_eq!(
-            ListWidget::from_string(input, seperator).get_all_reverted(),
+            ContentWidget::from_string(input, seperator).get_all_reverted(),
             vec![vec![single(), folder(1), single()], vec![single(), folder(2), folder(4)], vec![folder(3)], vec![single()], vec![single()]]
         );
     }
