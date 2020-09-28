@@ -161,9 +161,9 @@ impl ListWidget for ContentWidget {
             // add icons for better visbility
             let mut spans = if !lame && entry.next.is_some() {
                 // add the prefix
-                vec![Span::from(format!("{}  ", prefix))]
+                vec![Span::from(format!("{} ", prefix))]
             } else {
-                vec![Span::from("   ")]
+                vec![Span::from("    ")]
             };
             spans.extend(entry.spans.clone());
             vec.push(ListItem::new(Text::from(Spans::from(spans))));
