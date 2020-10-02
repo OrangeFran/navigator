@@ -10,5 +10,6 @@
 - [x] Allow searching with regex.
 
 - [ ] Display some information about the stuff in the current folder, like size etc.
+    - [x] Added amount of entries.
 - [ ] More configuration options.
     - [ ] Choose which emojis you want to use.

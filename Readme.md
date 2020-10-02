@@ -1,6 +1,8 @@
 # Navigator
 
-![Preview](images/preview.png)
+![emoji selection with navigator](preview/emojis.gif)
+A small script which can be found at `examples/emojis.sh` to copy an emoji to the clipboard.
+To use it follow the installation instructions at the bottom and manually install `emojify`.
 
 Navigator allows you to navigate through heavy output with ease.
 You can feed it a string and it gives you in return a beautiful interface from where you can select or search.
@@ -108,8 +110,8 @@ lame = false
 in your config file to work. I'm working on making everything optional.
 But I don't really like my implementation. I'd be happy to take suggestions.
 
-You can see **all** avaible options in this
-[file](https://github.com/OrangeFran/navigator/tree/master/config/config.toml).
+You can see **every** avaible options
+[here](https://github.com/OrangeFran/navigator/tree/master/config/config.toml).
 
 ### Dependencies
 
