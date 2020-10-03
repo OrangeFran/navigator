@@ -8,4 +8,4 @@
 # how this works:
 # it swaps standard out and standard
 # error so only stderr get's outputted to the next command
-navigator 3>&2 2>&1 1>&3 3>&-
+navigator $@ 3>&2 2>&1 1>&3 3>&-
