@@ -34,8 +34,20 @@ cargo install --path navigator
 ```
 
 The application uses a lot of emojis, because I personally like them.
-You can use the `lame` mode, if you don't like them.
+You can use the `lame` mode if you don't like them.
 But if you do, please install the `noto-fonts-emoji` package.
+
+In the next section you're going to read about some problems with unix-streams.
+To fix them I created a script called `wrapper.sh` that enables you to use it like any other command in a chain:
+`echo "test" | ./wrapper.sh --lame | less`.
+
+I suggest to put that file somewhere in your path and call it `navi`.
+
+``` bash
+sudo cp wrapper.sh /usr/local/bin
+```
+
+Now it's as simple as using `navi` instead of `navigator`.
 
 ### Usage
 
