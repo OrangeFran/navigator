@@ -62,10 +62,10 @@ pub struct Config {
 // + addition values passed in at runtime
 pub fn read_config(string: &str, lame: bool) -> Config {
     // return the default if string is empty
+    // else use the default values
     let mut config = if !string.is_empty() {
         toml::from_str::<Config>(string)
             .expect("Failed to parse toml")
-    // else use the default values
     } else {
         Config {
             prefixes: Prefix {

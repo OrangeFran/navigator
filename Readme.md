@@ -41,9 +41,12 @@ But if you do, please install the `noto-fonts-emoji` package.
 
 First of all, while doing this project I've had some trouble with unix-streams.
 Especially when I wanted to allow piping the output to another command.
-I solved this by using the sdtout for the terminal user interface, but I used the stderr to print out the selected item.
-So if you want to pipe the output, you can use `navigator ... 2> file` and then get it via `cat file` or something else.
-Look at an example in the `examples/` folder to learn more.
+I solved this by using sdtout for the terminal user interface and stderr to output the selected item.
+If you want to use this in a chain of commands, you have to redirect stderr to stdout and stdout to stderr:
+`navigator 3>&2 2>&1 1>&3 3>&-`.
+To simplify this you can create an alias or use the `wrapper.sh` script.
+
+Look at some examples in the `examples/` folder to learn more.
 
 There are some flags you can use. Look at them with `--help`.
 It's pretty basic for now. You can pass in a string to process or read from standard input.
