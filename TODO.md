@@ -9,6 +9,8 @@
 - [x] Add live search. It updates while searching so you find your stuff better.
 - [x] Allow searching with regex.
 
+- [ ] New json mode
+
 - [ ] Display some information about the stuff in the current folder, like size etc.
     - [x] Added amount of entries.
 - [ ] More configuration options.
