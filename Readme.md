@@ -1,4 +1,5 @@
 # Navigator
+### Look at output with ease
 
 ![emoji selection with navigator](preview/emojis.gif)
 A small script which can be found at `examples/emojis.sh` to copy an emoji to the clipboard.
@@ -6,7 +7,6 @@ To use it follow the installation instructions at the bottom and manually instal
 
 Navigator allows you to navigate through heavy output with ease.
 You can feed it a string and it gives you in return a beautiful interface from where you can select or search.
-The preview image above shows you the output of the `examples/files.sh` script. But it's definitely not a file manager.
 
 It differentiates itself by providing support for folders.
 Simply because folders allow for much cleaner and simpler navigation.
