@@ -44,7 +44,7 @@ To fix them I created a script called `wrapper.sh` that enables you to use it li
 I suggest to put that file somewhere in your path and call it `navi`.
 
 ``` bash
-sudo cp wrapper.sh /usr/local/bin
+sudo cp wrapper.sh /usr/local/bin/navi
 ```
 
 Now it's as simple as using `navi` instead of `navigator`.
