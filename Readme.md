@@ -64,12 +64,17 @@ There are some flags you can use. Look at them with `--help`.
 It's pretty basic for now. You can pass in a string to process or read from standard input.
 
 After the string is read, it get's parsed into a list of folders and files.
-By default it seperatres folders and subfolders with a tab e.q.
+By default it seperatres folders and subfolders with a tab.
+
 ```
 file
 folder
     file
+    folder
+        file
+file
 ```
+
 You can even use nested folder. It should all work.
 There are also some tests that prove it. Run `cargo test` for that.
 If there are errors, please open an issue.
@@ -96,6 +101,10 @@ Here's a list:
     * scroll down
 * **k**
     * scroll up
+* **g**
+    * go to the top
+* **G**
+    * go to the bottom
 * **q**     
     * quit
 * **/**     
