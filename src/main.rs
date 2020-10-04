@@ -8,6 +8,7 @@ use widgets::Direction;
 use widgets::{Selectable, ContentWidget, InfoWidget, SearchWidget};
 
 use std::fs::File;
+use std::path::Path;
 use std::io::{Read, Write};
 use std::io::{stdin, stdout, stderr};
 
@@ -60,18 +61,26 @@ fn main() {
     }
 
     // open input file and read to string
+    // or try the default one (~/.config/navigator/config.toml)
     let mut config = String::new();
     if let Some(c) = matches.value_of("config") {
         File::open(c)
             .expect("Failed to open config")
             .read_to_string(&mut config)
             .expect("Failed to read config");
+    } else {
+        let default_path = Path::new(env!("HOME")).join(".config/navigator/config.toml");
+        if let Ok(mut f) = File::open(default_path) {
+            f.read_to_string(&mut config)
+                .expect("Failed to read from default config");
+        }
     }
 
     // config::read_config returns default values if the string is empty
     // and takes additional vlaues which can be configured at runtime
     // these can be also defined in the config file, but could get overwritten
     let config = config::read_config(config.as_str(), lame);
+
     // check if a seperator was provided
     // else fall back to \t (tab)
     let seperator = matches.value_of("seperator")
