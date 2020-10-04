@@ -181,6 +181,14 @@ fn main() {
                                 selected = Selectable::Search; 
                             }
                         }
+                        // go to the top
+                        Event::Key(Key::Char('g')) => {
+                            list_widget.selected = 0;
+                        }
+                        // go to the bottom
+                        Event::Key(Key::Char('G')) => {
+                            list_widget.selected = list_widget.displayed.len() - 1;
+                        }
                         // switch to search widget
                         Event::Key(Key::Char('/')) => {
                             selected = Selectable::Search;
