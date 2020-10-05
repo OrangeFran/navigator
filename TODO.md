@@ -14,4 +14,5 @@
 - [ ] Display some information about the stuff in the current folder, like size etc.
     - [x] Added amount of entries.
 - [ ] More configuration options.
-    - [ ] Choose which emojis you want to use.
+    - [x] Choose which emojis you want to use.
+    - [ ] Choose color of regex highlights.
