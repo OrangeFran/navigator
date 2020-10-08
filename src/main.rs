@@ -113,11 +113,11 @@ fn main() {
 
         let mut selected = Selectable::List;
         let mut search_widget = SearchWidget::new();
-        let mut list_widget = ContentWidget::from_string(input, seperator);
-        let mut info_widget = InfoWidget::new(list_widget.displayed.len());
+        let mut content_widget = ContentWidget::from_string(input, seperator);
+        let mut info_widget = InfoWidget::new(content_widget.displayed.len());
 
         // draw the layout for the first time
-        render::draw(&mut terminal, &list_widget, &search_widget, &info_widget, &selected, &config);
+        render::draw(&mut terminal, &content_widget, &search_widget, &info_widget, &selected, &config);
 
         // start listening
         for event in tty.events() {
@@ -137,29 +137,29 @@ fn main() {
                         // else block the switch (the user can escape with esc or search for
                         // something different)
                         Event::Key(Key::Char('\n')) => {
-                            if !list_widget.empty_display() {
+                            if !content_widget.empty_display() {
                                 selected = Selectable::List;
                             }    
                         }
                         // add the char to the search
                         Event::Key(Key::Char(c)) => {
                             search_widget.add(c);
-                            list_widget.apply_search(search_widget.get_content());
-                            info_widget.update(list_widget.displayed.len());
+                            content_widget.apply_search(search_widget.get_content());
+                            info_widget.update(content_widget.displayed.len());
                         }
                         // remove the last char from the search
                         Event::Key(Key::Backspace) => {
                             search_widget.pop();
-                            list_widget.apply_search(search_widget.get_content());
-                            info_widget.update(list_widget.displayed.len());
+                            content_widget.apply_search(search_widget.get_content());
+                            info_widget.update(content_widget.displayed.len());
                         }
                         // switch back to the list view
                         // do not keep the search
                         Event::Key(Key::Esc) => {
                             selected = Selectable::List;
                             search_widget.clear();
-                            list_widget.apply_search(search_widget.get_content());
-                            info_widget.update(list_widget.displayed.len());
+                            content_widget.apply_search(search_widget.get_content());
+                            info_widget.update(content_widget.displayed.len());
                         }
 
                         _ => {}
@@ -170,18 +170,18 @@ fn main() {
                         // move up/down/left/right
                         // with the arrow or vim keys
                         Event::Key(Key::Up) | Event::Key(Key::Char('k')) => {
-                            list_widget.scroll(Direction::Up);
+                            content_widget.scroll(Direction::Up);
                         }
                         Event::Key(Key::Down) | Event::Key(Key::Char('j')) => {
-                            list_widget.scroll(Direction::Down);
+                            content_widget.scroll(Direction::Down);
                         }
                         // expand an element
                         // if the folder contains no element because of the search
                         // enter the folder and directly switch to the search
                         Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
-                            list_widget.expand();
-                            info_widget.update(list_widget.displayed.len());
-                            if list_widget.empty_display() {
+                            content_widget.expand();
+                            info_widget.update(content_widget.displayed.len());
+                            if content_widget.empty_display() {
                                 selected = Selectable::Search; 
                             }
                         }
@@ -189,19 +189,19 @@ fn main() {
                         // if the folder contains no element because of the search
                         // enter the folder and directly switch to the search
                         Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
-                            list_widget.back();
-                            info_widget.update(list_widget.displayed.len());
-                            if list_widget.empty_display() {
+                            content_widget.back();
+                            info_widget.update(content_widget.displayed.len());
+                            if content_widget.empty_display() {
                                 selected = Selectable::Search; 
                             }
                         }
                         // go to the top
                         Event::Key(Key::Char('g')) => {
-                            list_widget.selected = 0;
+                            content_widget.selected = 0;
                         }
                         // go to the bottom
                         Event::Key(Key::Char('G')) => {
-                            list_widget.selected = list_widget.displayed.len() - 1;
+                            content_widget.selected = content_widget.displayed.len() - 1;
                         }
                         // switch to search widget
                         Event::Key(Key::Char('/')) => {
@@ -213,9 +213,9 @@ fn main() {
                             if full_path {
                                 // the slash between is not necessary because it's provided by the
                                 // .get_path method
-                                message.push_str(format!("{}{}", &list_widget.get_path(), &list_widget.get_name()).as_str());
+                                message.push_str(format!("{}{}", &content_widget.get_path(), &content_widget.get_name()).as_str());
                             } else {
-                                message.push_str(&list_widget.get_name());
+                                message.push_str(&content_widget.get_name());
                             }
                             break;
                         }
@@ -231,7 +231,7 @@ fn main() {
             }
 
             // update the tui
-            render::draw(&mut terminal, &list_widget, &search_widget, &info_widget, &selected, &config);
+            render::draw(&mut terminal, &content_widget, &search_widget, &info_widget, &selected, &config);
         }
     }
 
