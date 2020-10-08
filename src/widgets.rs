@@ -150,9 +150,9 @@ impl ListWidget for ContentWidget {
     fn get_title(&self, lame: bool, prefix: String) -> String {
         let path = self.get_path();
         if lame {
-            format!(" {} ", path)
+            format!(" /{} ", path)
         } else {
-            format!(" {} {} ", prefix, path)
+            format!(" {} /{} ", prefix, path)
         }
     }
     fn display(&self, lame: bool, prefix: String) -> Vec<ListItem> {
@@ -347,7 +347,7 @@ impl ContentWidget {
     }
 
     pub fn get_path(&self) -> String {
-        let mut output = String::from("/");
+        let mut output = String::from("");
         for (s, _) in &self.path[1..] {
             output.push_str(s);
             output.push('/');
