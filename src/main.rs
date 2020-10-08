@@ -29,7 +29,7 @@ fn main() {
              .help("Specify input, reads from stdin if none"))
         .arg(Arg::with_name("seperator")
              .short("s")
-             .long("sep")
+             .long("seperator")
              .takes_value(true)
              .help("Specify the seperator that the parsing is based on"))
         .arg(Arg::with_name("config")
@@ -38,14 +38,19 @@ fn main() {
              .value_name("FILE")
              .takes_value(true)
              .help("Specify the path to the config file"))
+        .arg(Arg::with_name("full-path")
+             .long("full-path")
+             .help("Return the full path of the item"))
         .arg(Arg::with_name("lame")
              .short("l")
              .long("lame")
              .help("Hide emojis"))
         .get_matches();
 
-    // specifies if emojis should be hidden
+    // look for boolean flags and save the state
+    // in a variable for easier access
     let lame = matches.is_present("lame");
+    let full_path = matches.is_present("full-path");
 
     // get the string, which should be processed
     // try to use INTPUT if defined
@@ -205,7 +210,13 @@ fn main() {
                         // print out the selected element to stdout
                         Event::Key(Key::Char('\n')) => {
                             terminal.clear().expect("Failed to clear the terminal");
-                            message.push_str(&list_widget.get_name());
+                            if full_path {
+                                // the slash between is not necessary because it's provided by the
+                                // .get_path method
+                                message.push_str(format!("{}{}", &list_widget.get_path(), &list_widget.get_name()).as_str());
+                            } else {
+                                message.push_str(&list_widget.get_name());
+                            }
                             break;
                         }
                         // quit the program
@@ -226,7 +237,7 @@ fn main() {
 
     // print out the selected element = message var if not empty
     // needs to be outside the scope so the variables
-    // terminal and raw get destroyed -> allows for normal output to stdout
+    // prints to stderr for better usability (piping etc.)
     if !message.is_empty() {
         write!(stderr(), "{}\n", message);
     }
@@ -234,7 +245,7 @@ fn main() {
 
 
 // tests that ensure that the from_string 'algorithm' works.
-// Cargo test will run everytime I changed something in from_string or ContentWidget
+// "cargo test" will run everytime I changed something in from_string or ContentWidget
 // to ensure stability.
 #[cfg(test)]
 mod tests {
@@ -250,9 +261,7 @@ mod tests {
 
     #[test]
     fn no_folders() {
-        let input = String::from("Single
-Single
-Single");
+        let input = String::from("Single\nSingle\nSingle");
         let seperator = String::from("\t");
         assert_eq!(
             ContentWidget::from_string(input, seperator).get_all_reverted(),
