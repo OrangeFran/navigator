@@ -142,7 +142,7 @@ pub struct ContentWidget {
     pub all: Vec<Vec<Entry>>, // represents all elements
     pub selected: usize, // represents the currently selected element
     pub displayed: Vec<Entry>, // stores the currently displayed items
-    path: Vec<(String, usize)>, // specifies the path the users is currently in
+    path: Vec<(String, usize)>, // specifies the path the users is currently in (usize is equal to the index of self.all)
     search: String // store the search keywords (get used in .display)
 }
 
@@ -357,7 +357,7 @@ impl ContentWidget {
 
     // recursively go through one Entry and his children (.next elements)
     // used in conjunction with to_path_display
-    fn recursive_entry(&mut self, mut path: String, entry: Entry) {
+    fn recursive_travel_entry(&mut self, mut path: String, entry: Entry) {
         self.displayed.push(
             Entry::new(format!("{}{}", path, entry.name), None)
         );
@@ -365,34 +365,27 @@ impl ContentWidget {
         if let Some(p) = entry.next {
             path.push_str(format!("{}/", entry.name).as_str());
             for entry in self.all[p].clone() {
-                self.recursive_entry(path.clone(), entry);
+                self.recursive_travel_entry(path.clone(), entry);
             }
         }
     }
 
     // adds all elements with their full path as a string
+    // starts from the folder the user is currently in
     // to the selected elements -> path search
     pub fn to_path_display(&mut self) {
         // clear the list of displayed items
         self.displayed = Vec::new();
-        for entry in self.all[0].clone() {
+        for entry in self.get_current_folder() {
             let path = String::new();
-            self.recursive_entry(path, entry);
+            self.recursive_travel_entry(path, entry);
         }
     }
 
-    // makes testing easier
-    pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
-        self.all.iter().map(|v| {
-            v.iter().map(|e| { e.revert() })
-                .collect::<Vec<(String, Option<usize>)>>()
-        }).collect()
-    }
-
+    // update .search field and style chars that match with the regex
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword; 
         self.selected = 0;
-
         let current_folder = self.get_current_folder();
         if self.search.is_empty() {
             self.displayed = current_folder;
@@ -406,17 +399,15 @@ impl ContentWidget {
         if re.is_err() {
             return;
         }
-
         let re = re.unwrap();
         self.displayed = Vec::new();
         for mut entry in self.get_current_folder() {
             if self.search.is_empty() || re.is_match(&entry.name) {
-                // self.displayed.push(entry);
                 // color the regex statements
                 let mut name_text = Vec::new();
                 let mut index_before = 0;
                 for mat in re.find_iter(&entry.name) {   
-                    // add the string up until the mathing chars
+                    // add the string (not styled) up until the mathing chars
                     if index_before != mat.start() {
                         name_text.push(Span::from(
                             entry.name.get(index_before..mat.start()).unwrap().to_string()
@@ -429,7 +420,7 @@ impl ContentWidget {
                     ));
                     index_before = mat.end().clone();
                 }
-                // add the rest of the name
+                // add the rest of the chars (not styled)
                 name_text.push(Span::from(
                     entry.name.get(index_before..entry.name.len()).unwrap().to_string()
                 ));

@@ -254,6 +254,17 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::widgets::ContentWidget;
+
+    impl ContentWidget {
+        // makes testing easier
+        pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
+            self.all.iter().map(|v| {
+                v.iter().map(|e| { e.revert() })
+                    .collect::<Vec<(String, Option<usize>)>>()
+            }).collect()
+        }
+    }
+
     // functions to create elements for a vector
     // make writing tests a whole less verbose
     fn single() -> (String, Option<usize>) {
