@@ -355,6 +355,32 @@ impl ContentWidget {
         output
     }
 
+    // recursively go through one Entry and his children (.next elements)
+    // used in conjunction with to_path_display
+    fn recursive_entry(&mut self, mut path: String, entry: Entry) {
+        self.displayed.push(
+            Entry::new(format!("{}{}", path, entry.name), None)
+        );
+        // add subelements if they exist
+        if let Some(p) = entry.next {
+            path.push_str(format!("{}/", entry.name).as_str());
+            for entry in self.all[p].clone() {
+                self.recursive_entry(path.clone(), entry);
+            }
+        }
+    }
+
+    // adds all elements with their full path as a string
+    // to the selected elements -> path search
+    pub fn to_path_display(&mut self) {
+        // clear the list of displayed items
+        self.displayed = Vec::new();
+        for entry in self.all[0].clone() {
+            let path = String::new();
+            self.recursive_entry(path, entry);
+        }
+    }
+
     // makes testing easier
     pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
         self.all.iter().map(|v| {
