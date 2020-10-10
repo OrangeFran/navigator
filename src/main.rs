@@ -195,6 +195,10 @@ fn main() {
                                 selected = Selectable::Search; 
                             }
                         }
+                        // display all elements with their whole path
+                        Event::Key(Key::Char('p')) => {
+                            content_widget.to_path_display();
+                        }
                         // go to the top
                         Event::Key(Key::Char('g')) => {
                             content_widget.selected = 0;
