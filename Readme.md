@@ -80,7 +80,7 @@ There are also some tests that prove it. Run `cargo test` for that.
 If there are errors, please open an issue.
 
 You can specify a custom seperator with `-s` or `--sep`.
-By default it's a tab (\t) as mentioned above.
+By default it's a tab (`\t`) as mentioned above.
 
 This tool is mostly built for people who want to script stuff.
 But you can sure use it for everything you want to.
