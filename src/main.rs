@@ -197,7 +197,7 @@ fn main() {
                         }
                         // display all elements with their whole path
                         Event::Key(Key::Char('p')) => {
-                            content_widget.to_path_display();
+                            content_widget.toggle_display_mode();
                         }
                         // go to the top
                         Event::Key(Key::Char('g')) => {

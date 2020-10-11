@@ -138,12 +138,18 @@ impl InfoWidget {
     }
 }
 
+enum DisplayMode {
+    Structured,
+    FullPath
+}
+
 pub struct ContentWidget {
     pub all: Vec<Vec<Entry>>, // represents all elements
     pub selected: usize, // represents the currently selected element
     pub displayed: Vec<Entry>, // stores the currently displayed items
     path: Vec<(String, usize)>, // specifies the path the users is currently in (usize is equal to the index of self.all)
-    search: String // store the search keywords (get used in .display)
+    search: String, // store the search keywords (get used in .display)
+    mode: DisplayMode
 }
 
 impl ListWidget for ContentWidget {
@@ -196,7 +202,8 @@ impl ContentWidget {
             path: vec![("".to_string(), 0)],
             selected: 0,
             displayed: all[0].clone(),
-            search: String::new()
+            search: String::new(),
+            mode: DisplayMode::Structured
         } 
     }
 
@@ -293,29 +300,33 @@ impl ContentWidget {
     
     // expand -> enter a folder
     pub fn expand(&mut self) {
-        // check if the element is actually expandable 
-        let current_element = self.displayed[self.selected].clone();
-        if let Some(new) = current_element.next {
-            // update .path
-            self.path.push((current_element.name, new));
-            // set the selected one to 0
-            // to prevent index errors
-            self.selected = 0;
+        if let DisplayMode::Structured = self.mode {
+            // check if the element is actually expandable 
+            let current_element = self.displayed[self.selected].clone();
+            if let Some(new) = current_element.next {
+                // update .path
+                self.path.push((current_element.name, new));
+                // set the selected one to 0
+                // to prevent index errors
+                self.selected = 0;
+            }
+            // update the .displayed
+            self.apply_search(self.search.clone());
         }
-        // update the .displayed
-        self.apply_search(self.search.clone());
     }
 
     // the opposite to expand
     pub fn back(&mut self) {
-        // remove the last element from path 
-        // and update .selected
-        if self.path.len() != 1 {
-            self.path.pop();
-            self.selected = 0;
+        if let DisplayMode::Structured = self.mode {
+            // remove the last element from path 
+            // and update .selected
+            if self.path.len() != 1 {
+                self.path.pop();
+                self.selected = 0;
+            }
+            // update the .displayed
+            self.apply_search(self.search.clone());
         }
-        // update the .displayed
-        self.apply_search(self.search.clone());
     }
 
     // scroll up/down
@@ -342,8 +353,11 @@ impl ContentWidget {
         self.displayed[self.selected].name.clone()
     }
 
-    pub fn get_current_folder(&self) -> Vec<Entry> {
-        self.all[self.path[self.path.len() - 1].1].clone()
+    fn get_current_folder(&self) -> Vec<Entry> {
+        match self.mode {
+            DisplayMode::Structured => self.all[self.path[self.path.len() - 1].1].clone(),
+            DisplayMode::FullPath => self.get_all_displayed_path()
+        }
     }
 
     pub fn get_path(&self) -> String {
@@ -356,16 +370,16 @@ impl ContentWidget {
     }
 
     // recursively go through one Entry and his children (.next elements)
-    // used in conjunction with to_path_display
-    fn recursive_travel_entry(&mut self, mut path: String, entry: Entry) {
-        self.displayed.push(
+    // used in conjunction with toggle_path_display_mode
+    fn recursive_travel_entry(&self, mut path: String, entry: Entry, vec: &mut Vec<Entry>) {
+        vec.push(
             Entry::new(format!("{}{}", path, entry.name), None)
         );
         // add subelements if they exist
         if let Some(p) = entry.next {
             path.push_str(format!("{}/", entry.name).as_str());
             for entry in self.all[p].clone() {
-                self.recursive_travel_entry(path.clone(), entry);
+                self.recursive_travel_entry(path.clone(), entry, vec);
             }
         }
     }
@@ -373,12 +387,28 @@ impl ContentWidget {
     // adds all elements with their full path as a string
     // starts from the folder the user is currently in
     // to the selected elements -> path search
-    pub fn to_path_display(&mut self) {
-        // clear the list of displayed items
-        self.displayed = Vec::new();
-        for entry in self.get_current_folder() {
+    fn get_all_displayed_path(&self) -> Vec<Entry> {
+        let mut vec = Vec::new();
+        for entry in self.all[self.path[self.path.len() - 1].1].clone() {
             let path = String::new();
-            self.recursive_travel_entry(path, entry);
+            self.recursive_travel_entry(path, entry, &mut vec);
+        }
+        return vec
+    }
+
+    // switch modes and update .displayed
+    pub fn toggle_display_mode(&mut self) {
+        match self.mode {
+            DisplayMode::Structured => {
+                self.mode = DisplayMode::FullPath;
+                self.displayed = self.get_all_displayed_path();
+                self.apply_search(self.search.clone());
+            },
+            DisplayMode::FullPath => {
+                self.mode = DisplayMode::Structured;
+                self.displayed = self.all[self.path[self.path.len() - 1].1].clone();
+                self.apply_search(self.search.clone());
+            }
         }
     }
 
@@ -401,7 +431,7 @@ impl ContentWidget {
         }
         let re = re.unwrap();
         self.displayed = Vec::new();
-        for mut entry in self.get_current_folder() {
+        for mut entry in current_folder {
             if self.search.is_empty() || re.is_match(&entry.name) {
                 // color the regex statements
                 let mut name_text = Vec::new();
