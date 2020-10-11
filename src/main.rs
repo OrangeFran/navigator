@@ -137,7 +137,7 @@ fn main() {
                         // else block the switch (the user can escape with esc or search for
                         // something different)
                         Event::Key(Key::Char('\n')) => {
-                            if !content_widget.empty_display() {
+                            if !content_widget.displayed.is_empty() {
                                 selected = Selectable::List;
                             }    
                         }
@@ -181,7 +181,7 @@ fn main() {
                         Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
                             content_widget.expand();
                             info_widget.update(content_widget.displayed.len());
-                            if content_widget.empty_display() {
+                            if content_widget.display.is_empty() {
                                 selected = Selectable::Search; 
                             }
                         }
@@ -191,7 +191,7 @@ fn main() {
                         Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
                             content_widget.back();
                             info_widget.update(content_widget.displayed.len());
-                            if content_widget.empty_display() {
+                            if content_widget.displayed.is_empty() {
                                 selected = Selectable::Search; 
                             }
                         }

@@ -415,7 +415,6 @@ impl ContentWidget {
     // update .search field and style chars that match with the regex
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword; 
-        self.selected = 0;
         let current_folder = self.get_current_folder();
         if self.search.is_empty() {
             self.displayed = current_folder;
@@ -430,6 +429,7 @@ impl ContentWidget {
             return;
         }
         let re = re.unwrap();
+        self.selected = 0;
         self.displayed = Vec::new();
         for mut entry in current_folder {
             if self.search.is_empty() || re.is_match(&entry.name) {
@@ -460,11 +460,5 @@ impl ContentWidget {
                 self.displayed.push(entry);
             }
         }
-    }
-
-    // checks if the current folder actually
-    // contains something or just the message that nothing was found
-    pub fn empty_display(&self) -> bool {
-        self.displayed.is_empty()
     }
 }
