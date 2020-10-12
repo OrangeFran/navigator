@@ -33,9 +33,9 @@ pub trait ListWidget {
 // to the index where it it stored
 #[derive(Clone, Debug)]
 pub struct Entry {
-    name: String,
+    pub name: String,
     spans: Vec<Span<'static>>,
-    next: Option<usize>
+    pub next: Option<usize>
 }
 
 impl Entry {
@@ -47,11 +47,6 @@ impl Entry {
             spans: vec![Span::from(n)],
             next: nx
         }
-    }
-    // converts and Entry to a tuple
-    // reverted ::new method
-    pub fn revert(&self) -> (String, Option<usize>) {
-        (self.name.clone(), self.next)
     }
 }
 
@@ -130,7 +125,7 @@ impl ParagraphWidget for InfoWidget {
 impl InfoWidget {
     pub fn new(count: usize) -> Self {
         Self {
-            count: count
+            count
         }
     }
     pub fn update(&mut self, new_count: usize) {
@@ -230,14 +225,11 @@ impl ContentWidget {
         // stores the path in indexes to the current index
         // so the code can jump back into previous folders
         let mut path = Vec::new(); 
-
         // stores the current index
         let mut current = 0;
         // used to compare identifiers
         let (mut count_idents_current, mut count_idents_next) = (0, 0);
-    
         let mut splitted_string = string.split('\n');
-
         let mut current_line: String;
         let mut next_line = match splitted_string.next() {
             Some(l) => l.to_string(),
@@ -450,7 +442,7 @@ impl ContentWidget {
                         entry.name.get(mat.start()..mat.end()).unwrap().to_string(), 
                         Style::default().fg(Color::Blue)
                     ));
-                    index_before = mat.end().clone();
+                    index_before = mat.end();
                 }
                 // add the rest of the chars (not styled)
                 entry.spans.push(Span::from(

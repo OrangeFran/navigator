@@ -56,7 +56,7 @@ pub fn draw<B: Backend>(
             )
     };
 
-    terminal.draw(|mut f| {
+    terminal.draw(|f| {
         // the search bar will take up 10%
         // the rest goes to the list view
         let chunks = Layout::default()
@@ -97,13 +97,11 @@ pub fn draw<B: Backend>(
 
         // the info widget
         let info_widget_content = info_widget.display(config.lame, String::new());
-        let info_widget_title = info_widget.get_title(config.lame, String::new());
         let info_widget_paragraph = Paragraph::new(info_widget_content)
             .block(block_default())
             .style(Style::default().fg(Color::White))
             .alignment(Alignment::Right)
             .wrap(Wrap { trim: false } );
-        // ... continue implementing the info widget
 
         // the scrollable list view
         let mut list_widget_state = ListState::default();
@@ -121,21 +119,6 @@ pub fn draw<B: Backend>(
             })
             .highlight_style(Style::default().add_modifier(Modifier::BOLD))
             .highlight_symbol(config.selector.as_str());
-
-        // // highlight the current selected widget
-        // match selected {
-        //     Selectable::Search => {
-        //         search_widget_paragraph = search_widget_paragraph.block(
-        //             block_selected(" 🔍 Search ")
-        //         );
-        //     }
-        //     Selectable::List => {
-        //         list_widget_list = list_widget_list.block(
-        //             block_selected(list_widget_title.as_str())
-        //         );
-        //         list_widget_state.select(Some(list_widget.selected));
-        //     }
-        // }
 
         // render all the widgets
         f.render_widget(search_widget_paragraph.clone(), info_chunk[0]);

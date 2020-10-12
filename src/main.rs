@@ -243,7 +243,7 @@ fn main() {
     // needs to be outside the scope so the variables
     // prints to stderr for better usability (piping etc.)
     if !message.is_empty() {
-        write!(stderr(), "{}\n", message);
+        write!(stderr(), "{}\n", message).expect("Failed to write to stderr");
     }
 }
 
@@ -253,8 +253,9 @@ fn main() {
 // to ensure stability.
 #[cfg(test)]
 mod tests {
+    use super::widgets::Entry;
     use super::widgets::ContentWidget;
-
+    
     impl ContentWidget {
         // makes testing easier
         pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
@@ -262,6 +263,14 @@ mod tests {
                 v.iter().map(|e| { e.revert() })
                     .collect::<Vec<(String, Option<usize>)>>()
             }).collect()
+        }
+    }
+
+    impl Entry {
+        // converts and Entry to a tuple
+        // reverted ::new method
+        pub fn revert(&self) -> (String, Option<usize>) {
+            (self.name.clone(), self.next)
         }
     }
 
