@@ -181,7 +181,7 @@ fn main() {
                         Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
                             content_widget.expand();
                             info_widget.update(content_widget.displayed.len());
-                            if content_widget.display.is_empty() {
+                            if content_widget.displayed.is_empty() {
                                 selected = Selectable::Search; 
                             }
                         }

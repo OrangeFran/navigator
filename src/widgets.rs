@@ -363,8 +363,7 @@ impl ContentWidget {
     pub fn get_path(&self) -> String {
         let mut output = String::from("");
         for (s, _) in &self.path[1..] {
-            output.push_str(s);
-            output.push('/');
+            output.push_str(&format!("{}/", s));
         }
         output
     }
@@ -377,7 +376,7 @@ impl ContentWidget {
         );
         // add subelements if they exist
         if let Some(p) = entry.next {
-            path.push_str(format!("{}/", entry.name).as_str());
+            path.push_str(&format!("{}/", entry.name));
             for entry in self.all[p].clone() {
                 self.recursive_travel_entry(path.clone(), entry, vec);
             }
@@ -393,7 +392,7 @@ impl ContentWidget {
             let path = String::new();
             self.recursive_travel_entry(path, entry, &mut vec);
         }
-        return vec
+        vec
     }
 
     // switch modes and update .displayed
@@ -412,7 +411,9 @@ impl ContentWidget {
         }
     }
 
-    // update .search field and style chars that match with the regex
+    // - update .search field
+    // - filter all the items
+    // - style chars that match the regex
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword; 
         let current_folder = self.get_current_folder();
@@ -429,34 +430,34 @@ impl ContentWidget {
             return;
         }
         let re = re.unwrap();
+        // for safety reasons select the first element
         self.selected = 0;
         self.displayed = Vec::new();
         for mut entry in current_folder {
             if self.search.is_empty() || re.is_match(&entry.name) {
                 // color the regex statements
-                let mut name_text = Vec::new();
+                entry.spans = Vec::new();
                 let mut index_before = 0;
                 for mat in re.find_iter(&entry.name) {   
                     // add the string (not styled) up until the mathing chars
                     if index_before != mat.start() {
-                        name_text.push(Span::from(
+                        entry.spans.push(Span::from(
                             entry.name.get(index_before..mat.start()).unwrap().to_string()
                         ));
                     }
                     // add the matching chars styled
-                    name_text.push(Span::styled(
+                    entry.spans.push(Span::styled(
                         entry.name.get(mat.start()..mat.end()).unwrap().to_string(), 
                         Style::default().fg(Color::Blue)
                     ));
                     index_before = mat.end().clone();
                 }
                 // add the rest of the chars (not styled)
-                name_text.push(Span::from(
+                entry.spans.push(Span::from(
                     entry.name.get(index_before..entry.name.len()).unwrap().to_string()
                 ));
                 // finally push it to the displayed vector
                 // which holds all entries that should get displayed to the user
-                entry.spans = name_text;
                 self.displayed.push(entry);
             }
         }
