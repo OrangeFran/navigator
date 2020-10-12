@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Sorry for the long line.
 # Improvements are always welcome!
