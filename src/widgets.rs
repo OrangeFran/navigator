@@ -113,12 +113,13 @@ impl SearchWidget {
 pub struct InfoWidget {
     pub count: usize // amount of elements in folder
 }
+
 impl ParagraphWidget for InfoWidget {
     fn get_title(&self, _lame: bool, _prefix: String) -> String {
         String::new()
     }
     fn display(&self, _lame: bool, _prefix: String) -> Text {
-        Text::from(Span::raw(self.count.to_string()))
+        Text::from(Span::raw(format!("{} ", self.count)))
     }
 }
 
