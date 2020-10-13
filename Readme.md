@@ -101,6 +101,8 @@ Here's a list:
     * scroll down
 * **k**
     * scroll up
+* **p**
+    * toggle display modes (structured / full path)
 * **g**
     * go to the top
 * **G**
