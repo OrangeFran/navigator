@@ -363,15 +363,20 @@ impl ContentWidget {
 
     // recursively go through one Entry and his children (.next elements)
     // used in conjunction with toggle_path_display_mode
-    fn recursive_travel_entry(&self, mut path: String, entry: Entry, vec: &mut Vec<Entry>) {
-        vec.push(
-            Entry::new(format!("{}{}", path, entry.name), None)
-        );
+    fn recursive_travel_entry(&self, mut path: String, mut spans: Vec<Span<'static>>, entry: Entry, vec: &mut Vec<Entry>) {
+        // create a new entry with no child
+        let mut to_add = Entry::new(format!("{}{}", path, entry.name), None);
+        to_add.spans = spans.clone();
+        to_add.spans.push(Span::from(entry.name.clone()));
+        vec.push(to_add);
         // add subelements if they exist
         if let Some(p) = entry.next {
             path.push_str(&format!("{}/", entry.name));
+            spans.push(Span::from(entry.name.clone()));
+            // add a colored (red) seperator
+            spans.push(Span::styled("/", Style::default().fg(Color::Red)));
             for entry in self.all[p].clone() {
-                self.recursive_travel_entry(path.clone(), entry, vec);
+                self.recursive_travel_entry(path.clone(), spans.clone(), entry, vec);
             }
         }
     }
@@ -382,8 +387,7 @@ impl ContentWidget {
     fn get_all_displayed_path(&self) -> Vec<Entry> {
         let mut vec = Vec::new();
         for entry in self.all[self.path[self.path.len() - 1].1].clone() {
-            let path = String::new();
-            self.recursive_travel_entry(path, entry, &mut vec);
+            self.recursive_travel_entry(String::new(), Vec::new(), entry, &mut vec);
         }
         vec
     }
