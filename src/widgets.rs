@@ -346,7 +346,7 @@ impl ContentWidget {
         self.displayed[self.selected].name.clone()
     }
 
-    fn get_current_folder(&self) -> Vec<Entry> {
+    fn get_current_folder(&mut self) -> Vec<Entry> {
         match self.mode {
             DisplayMode::Structured => self.all[self.path[self.path.len() - 1].1].clone(),
             DisplayMode::FullPath => self.get_all_displayed_path()
@@ -363,7 +363,7 @@ impl ContentWidget {
 
     // recursively go through one Entry and his children (.next elements)
     // used in conjunction with toggle_path_display_mode
-    fn recursive_travel_entry(&self, mut path: String, mut spans: Vec<Span<'static>>, entry: Entry, vec: &mut Vec<Entry>) {
+    fn recursive_travel_entry(&mut self, mut path: String, mut spans: Vec<Span<'static>>, entry: Entry, vec: &mut Vec<Entry>) {
         // create a new entry with no child
         let mut to_add = Entry::new(format!("{}{}", path, entry.name), None);
         to_add.spans = spans.clone();
@@ -373,9 +373,13 @@ impl ContentWidget {
         if let Some(p) = entry.next {
             path.push_str(&format!("{}/", entry.name));
             spans.push(Span::from(entry.name.clone()));
-            // add a colored (red) seperator
+            // and add a colored (red) seperator
+            // update the .displayed
+            // reapply the search
+            self.apply_search(self.search.clone());
             spans.push(Span::styled("/", Style::default().fg(Color::Red)));
             for entry in self.all[p].clone() {
+                // call the function again (recursion)
                 self.recursive_travel_entry(path.clone(), spans.clone(), entry, vec);
             }
         }
@@ -384,7 +388,7 @@ impl ContentWidget {
     // adds all elements with their full path as a string
     // starts from the folder the user is currently in
     // to the selected elements -> path search
-    fn get_all_displayed_path(&self) -> Vec<Entry> {
+    fn get_all_displayed_path(&mut self) -> Vec<Entry> {
         let mut vec = Vec::new();
         for entry in self.all[self.path[self.path.len() - 1].1].clone() {
             self.recursive_travel_entry(String::new(), Vec::new(), entry, &mut vec);
@@ -418,19 +422,16 @@ impl ContentWidget {
             self.displayed = current_folder;
             return;
         }
-        // filter out all the names
-        // that do not match with self.search
-        // if it's not empty
-        let re = Regex::new(&self.search);
         // if the regex failed, do nothing
-        if re.is_err() {
-            return;
-        }
-        let re = re.unwrap();
+        let re = match Regex::new(&self.search) {
+            Ok(r) => r,
+            Err(_) => return
+        };
         // for safety reasons select the first element
         self.selected = 0;
         self.displayed = Vec::new();
         for mut entry in current_folder {
+            // find out if they match
             if self.search.is_empty() || re.is_match(&entry.name) {
                 // color the regex statements
                 entry.spans = Vec::new();
