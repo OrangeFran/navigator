@@ -365,14 +365,14 @@ impl ContentWidget {
     // used in conjunction with toggle_path_display_mode
     fn recursive_travel_entry(&mut self, mut path: String, mut spans: Vec<Span<'static>>, entry: Entry, vec: &mut Vec<Entry>) {
         // create a new entry with no child
-        let mut to_add = Entry::new(format!("{}{}", path, entry.name), None);
+        path.push_str(&entry.name);
+        spans.push(Span::from(entry.name.clone()));
+        let mut to_add = Entry::new(path.clone(), None);
         to_add.spans = spans.clone();
-        to_add.spans.push(Span::from(entry.name.clone()));
         vec.push(to_add);
         // add subelements if they exist
         if let Some(p) = entry.next {
-            path.push_str(&format!("{}/", entry.name));
-            spans.push(Span::from(entry.name.clone()));
+            path.push('/');
             // and add a colored (red) seperator
             // update the .displayed
             // reapply the search
