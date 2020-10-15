@@ -364,14 +364,20 @@ impl ContentWidget {
 
     // recursively go through one Entry and his children (.next elements)
     // used in conjunction with toggle_path_display_mode
-    fn recursive_travel_entry(&mut self, mut path: String, mut spans: Vec<Span<'static>>, entry: Entry, vec: &mut Vec<Entry>) {
+    fn recursive_travel_entry(
+        &mut self, mut path: String, mut spans: Vec<Span<'static>>, 
+        mut special: Vec<(usize, Color)>, entry: Entry, vec: &mut Vec<Entry>
+    ) {
         // create a new entry with no child
         path.push_str(&entry.name);
         spans.push(Span::from(entry.name.clone()));
-        vec.push(Entry::new(path.clone(), None, Some(spans.clone())));
+        let mut to_add = Entry::new(path.clone(), None, Some(spans.clone()));
+        to_add.special = special.clone();
+        vec.push(to_add.clone());
         // check if subelements exist
         if let Some(p) = entry.next {
             path.push('/');
+            special.push((to_add.name.len(), Color::Red));
             spans.push(Span::styled("/", Style::default().fg(Color::Red)));
             // and add a colored (red) seperator
             // update the .displayed
@@ -379,7 +385,7 @@ impl ContentWidget {
             // self.apply_search(self.search.clone());
             for entry in self.all[p].clone() {
                 // call the function again for each subelements (recursion)
-                self.recursive_travel_entry(path.clone(), spans.clone(), entry, vec);
+                self.recursive_travel_entry(path.clone(), spans.clone(), special.clone(), entry, vec);
             }
         }
     }
@@ -390,7 +396,7 @@ impl ContentWidget {
     fn get_all_displayed_path(&mut self) -> Vec<Entry> {
         let mut vec = Vec::new();
         for entry in self.all[self.path[self.path.len() - 1].1].clone() {
-            self.recursive_travel_entry(String::new(), Vec::new(), entry, &mut vec);
+            self.recursive_travel_entry(String::new(), Vec::new(), Vec::new(), entry, &mut vec);
         }
         vec
     }
@@ -429,7 +435,7 @@ impl ContentWidget {
         // for safety reasons select the first element
         self.selected = 0;
         self.displayed = Vec::new();
-        for mut entry in current_folder {
+        for mut entry in current_folder.clone() {
             // find out if they match
             if self.search.is_empty() || re.is_match(&entry.name) {
                 // color the regex statements
@@ -438,49 +444,58 @@ impl ContentWidget {
                 for mat in re.find_iter(&entry.name) {   
                     // add the string (not styled) up until the mathing chars
                     if index_before != mat.start() {
+                        for (ind, color) in entry.special.clone() {
+                            if ind > index_before && ind < mat.start() {
+                                entry.spans.push(Span::from(
+                                    entry.name.get(index_before..ind).unwrap().to_string()
+                                ));
+                                entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                                index_before = ind + 1;
+                            }
+                        }
                         entry.spans.push(Span::from(
                             entry.name.get(index_before..mat.start()).unwrap().to_string()
                         ));
+                        index_before = mat.start();
                     }
                     // add the matching chars styled
-                    entry.spans.push(Span::styled(
-                        entry.name.get(mat.start()..mat.end()).unwrap().to_string(), 
-                        Style::default().fg(Color::Blue)
-                    ));
+                    for (ind, color) in entry.special.clone() {
+                        if ind > index_before && ind < mat.end() {
+                            entry.spans.push(Span::styled(
+                                entry.name.get(index_before..ind).unwrap().to_string(),
+                                Style::default().fg(Color::Blue)
+                            ));
+                            entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                            index_before = ind + 1;
+                        }
+                    }
+                    if index_before < mat.end() {
+                        entry.spans.push(Span::styled(
+                            entry.name.get(index_before..mat.end()).unwrap().to_string(),
+                            Style::default().fg(Color::Blue)
+                        ));
+                    }
                     index_before = mat.end();
                 }
                 // add the rest of the chars (not styled)
-                entry.spans.push(Span::from(
-                    entry.name.get(index_before..entry.name.len()).unwrap().to_string()
-                ));
-                // now color the chars at the indexes stored in .special
-                let length = 0;
                 for (ind, color) in entry.special.clone() {
-                    // manual indexing so I can remove
-                    // the unnecessary spans
-                    let mut num = 0;
-                    for span in entry.spans.clone() {
-                        if length + span.content.len() <= ind {
-                            let span_before = Span::styled(
-                                span.content.get(..(ind - length)).unwrap(), span.style
-                            );
-                            let highlight_span = Span::styled(
-                                span.content.get((ind - length)..(ind - length + 1)).unwrap(), Style::default().fg(color)
-                            );
-                            let span_after = Span::styled(
-                                span.content.get((ind - length + 1)..).unwrap(), span.style
-                            );
-                            entry.spans.remove(num);
-                            entry.spans.insert(num, span_after);
-                            entry.spans.insert(num, highlight_span);
-                            entry.spans.insert(num, span_before);
-                        }
-                        num += 1;
+                    if ind > index_before {
+                        entry.spans.push(Span::styled(
+                            entry.name.get(index_before..ind).unwrap().to_string(),
+                            Style::default().fg(Color::Blue)
+                        ));
+                        entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                        index_before = ind + 1;
                     }
+                }
+                if entry.name.len() > index_before {
+                    entry.spans.push(Span::from(
+                        entry.name.get(index_before..entry.name.len()).unwrap().to_string()
+                    ));
                 }
                 // finally push it to the displayed vector
                 // which holds all entries that should get displayed to the user
-                self.displayed.push(entry);
+                self.displayed.push(entry.clone());
             }
         }
     }
