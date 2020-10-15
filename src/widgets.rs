@@ -35,22 +35,23 @@ pub trait ListWidget {
 pub struct Entry {
     pub name: String,
     spans: Vec<Span<'static>>,
-    pub next: Option<usize>
+    pub next: Option<usize>,
+    special: Vec<(usize, Color)>
 }
 
 impl Entry {
-    pub fn new(n: String, nx: Option<usize>) -> Self {
+    pub fn new(name: String, next: Option<usize>, spans: Option<Vec<Span<'static>>>) -> Self {
         Self {
-            name: n.clone(),
+            name: name.clone(),
             // just the default for now, 
             // gets changed anyway if necessary
-            spans: vec![Span::from(n)],
-            next: nx
+            spans: spans.unwrap_or(vec![Span::from(name)]),
+            next: next,
+            special: Vec::new()
         }
     }
 }
 
-// Directions
 // needed by the ContentWidget to
 // represent scrolling directions
 // for better readability.
@@ -245,7 +246,7 @@ impl ContentWidget {
             next_line = match splitted_string.next() {
                 Some(l) => l.to_string(),
                 None => {
-                    tuple_vec[current].push(Entry::new(current_line, None));
+                    tuple_vec[current].push(Entry::new(current_line, None, None));
                     break;
                 }
             };
@@ -265,7 +266,7 @@ impl ContentWidget {
                     // as Some(index) in the current vectory
                     tuple_vec.push(Vec::new());
                     let new_index = &tuple_vec.len() - 1;
-                    tuple_vec[current].push(Entry::new(current_line, Some(new_index)));
+                    tuple_vec[current].push(Entry::new(current_line, Some(new_index), None));
                
                     // store information to find back
                     path.push(current);
@@ -274,7 +275,7 @@ impl ContentWidget {
                 },
                 // directory gets closed
                 c if c < count_idents_current => {
-                    tuple_vec[current].push(Entry::new(current_line, None));
+                    tuple_vec[current].push(Entry::new(current_line, None, None));
                     let difference = count_idents_current - count_idents_next;
 
                     // get the previous index and update the path
@@ -284,7 +285,7 @@ impl ContentWidget {
                     }
                 },
                 // in the same directory
-                _ => tuple_vec[current].push(Entry::new(current_line, None))
+                _ => tuple_vec[current].push(Entry::new(current_line, None, None))
             }
         }
 
@@ -367,19 +368,17 @@ impl ContentWidget {
         // create a new entry with no child
         path.push_str(&entry.name);
         spans.push(Span::from(entry.name.clone()));
-        let mut to_add = Entry::new(path.clone(), None);
-        to_add.spans = spans.clone();
-        vec.push(to_add);
-        // add subelements if they exist
+        vec.push(Entry::new(path.clone(), None, Some(spans.clone())));
+        // check if subelements exist
         if let Some(p) = entry.next {
             path.push('/');
+            spans.push(Span::styled("/", Style::default().fg(Color::Red)));
             // and add a colored (red) seperator
             // update the .displayed
             // reapply the search
-            self.apply_search(self.search.clone());
-            spans.push(Span::styled("/", Style::default().fg(Color::Red)));
+            // self.apply_search(self.search.clone());
             for entry in self.all[p].clone() {
-                // call the function again (recursion)
+                // call the function again for each subelements (recursion)
                 self.recursive_travel_entry(path.clone(), spans.clone(), entry, vec);
             }
         }
@@ -434,8 +433,8 @@ impl ContentWidget {
             // find out if they match
             if self.search.is_empty() || re.is_match(&entry.name) {
                 // color the regex statements
-                entry.spans = Vec::new();
                 let mut index_before = 0;
+                entry.spans = Vec::new();
                 for mat in re.find_iter(&entry.name) {   
                     // add the string (not styled) up until the mathing chars
                     if index_before != mat.start() {
@@ -454,6 +453,31 @@ impl ContentWidget {
                 entry.spans.push(Span::from(
                     entry.name.get(index_before..entry.name.len()).unwrap().to_string()
                 ));
+                // now color the chars at the indexes stored in .special
+                let length = 0;
+                for (ind, color) in entry.special.clone() {
+                    // manual indexing so I can remove
+                    // the unnecessary spans
+                    let mut num = 0;
+                    for span in entry.spans.clone() {
+                        if length + span.content.len() <= ind {
+                            let span_before = Span::styled(
+                                span.content.get(..(ind - length)).unwrap(), span.style
+                            );
+                            let highlight_span = Span::styled(
+                                span.content.get((ind - length)..(ind - length + 1)).unwrap(), Style::default().fg(color)
+                            );
+                            let span_after = Span::styled(
+                                span.content.get((ind - length + 1)..).unwrap(), span.style
+                            );
+                            entry.spans.remove(num);
+                            entry.spans.insert(num, span_after);
+                            entry.spans.insert(num, highlight_span);
+                            entry.spans.insert(num, span_before);
+                        }
+                        num += 1;
+                    }
+                }
                 // finally push it to the displayed vector
                 // which holds all entries that should get displayed to the user
                 self.displayed.push(entry);
