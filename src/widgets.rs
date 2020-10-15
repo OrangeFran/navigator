@@ -453,9 +453,11 @@ impl ContentWidget {
                                 index_before = ind + 1;
                             }
                         }
-                        entry.spans.push(Span::from(
-                            entry.name.get(index_before..mat.start()).unwrap().to_string()
-                        ));
+                        if index_before < mat.start() {
+                            entry.spans.push(Span::from(
+                                entry.name.get(index_before..mat.start()).unwrap().to_string()
+                            ));
+                        }
                         index_before = mat.start();
                     }
                     // add the matching chars styled
@@ -467,9 +469,12 @@ impl ContentWidget {
                             ));
                             entry.spans.push(Span::styled("/", Style::default().fg(color)));
                             index_before = ind + 1;
+                        } else if ind == index_before {
+                            entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                            index_before += 1;
                         }
                     }
-                    if index_before < mat.end() {
+                    if mat.end() > index_before {
                         entry.spans.push(Span::styled(
                             entry.name.get(index_before..mat.end()).unwrap().to_string(),
                             Style::default().fg(Color::Blue)
@@ -479,13 +484,15 @@ impl ContentWidget {
                 }
                 // add the rest of the chars (not styled)
                 for (ind, color) in entry.special.clone() {
-                    if ind > index_before {
-                        entry.spans.push(Span::styled(
-                            entry.name.get(index_before..ind).unwrap().to_string(),
-                            Style::default().fg(Color::Blue)
+                    if ind > index_before && ind < entry.name.len() {
+                        entry.spans.push(Span::from(
+                            entry.name.get(index_before..ind).unwrap().to_string()
                         ));
                         entry.spans.push(Span::styled("/", Style::default().fg(color)));
                         index_before = ind + 1;
+                    } else if ind == index_before {
+                        entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                        index_before += 1;
                     }
                 }
                 if entry.name.len() > index_before {
