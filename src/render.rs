@@ -76,7 +76,7 @@ pub fn draw<B: Backend>(
             .constraints(
                 [
                     Constraint::Min(10),
-                    Constraint::Length(5)
+                    Constraint::Length(10)
                 ].as_ref()
             )
             .split(chunks[0]);
