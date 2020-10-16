@@ -56,11 +56,11 @@ Especially when I wanted to allow piping the output to another command.
 I solved this by using sdtout for the terminal user interface and stderr to output the selected item.
 If you want to use this in a chain of commands, you have to redirect stderr to stdout and stdout to stderr:
 `navigator 3>&2 2>&1 1>&3 3>&-`.
-To simplify this you can create an alias or use the `wrapper.sh` script.
+To simplify this you can use the `wrapper.sh` script.
 
-Look at some examples in the `examples/` folder to learn more.
+Look at some examples in the `examples/` folder to learn more and get some ideas of possible usages.
 
-There are some flags you can use. Look at them with `--help`.
+There are some flags you can use. Access the help menu with `--help`.
 It's pretty basic for now. You can pass in a string to process or read from standard input.
 
 After the string is read, it get's parsed into a list of folders and files.
