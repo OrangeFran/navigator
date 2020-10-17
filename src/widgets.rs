@@ -1,11 +1,16 @@
 extern crate tui;
 extern crate regex;
 
+use std::thread;
+use std::sync::mpsc;
+
 use regex::Regex;
 
 use tui::widgets::ListItem;
 use tui::text::{Text, Spans, Span};
 use tui::style::{Style, Modifier, Color};
+
+const MAX_THREAD_AMOUNT: i32 = 20;
 
 // represents a selection
 // of all selctable widgets
@@ -435,37 +440,60 @@ impl ContentWidget {
         // for safety reasons select the first element
         self.selected = 0;
         self.displayed = Vec::new();
-        for mut entry in current_folder.clone() {
-            // find out if they match
-            if self.search.is_empty() || re.is_match(&entry.name) {
-                // color the regex statements
-                let mut index_before = 0;
-                entry.spans = Vec::new();
-                for mat in re.find_iter(&entry.name) {   
-                    // add the string (not styled) up until the mathing chars
-                    if index_before != mat.start() {
-                        for (ind, color) in entry.special.clone() {
-                            if ind > index_before && ind < mat.start() {
+        let filter_and_color = |re: Regex, list: Vec<Entry>| -> Vec<Entry> {
+            let mut to_send = Vec::new();
+            for mut entry in list {
+                // find out if they match
+                if re.is_match(&entry.name) {
+                    // color the regex statements
+                    let mut index_before = 0;
+                    entry.spans = Vec::new();
+                    for mat in re.find_iter(&entry.name) {   
+                        // add the string (not styled) up until the mathing chars
+                        if index_before != mat.start() {
+                            for (ind, color) in entry.special.clone() {
+                                if ind > index_before && ind < mat.start() {
+                                    entry.spans.push(Span::from(
+                                        entry.name.get(index_before..ind).unwrap().to_string()
+                                    ));
+                                    entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                                    index_before = ind + 1;
+                                }
+                            }
+                            if index_before < mat.start() {
                                 entry.spans.push(Span::from(
-                                    entry.name.get(index_before..ind).unwrap().to_string()
+                                    entry.name.get(index_before..mat.start()).unwrap().to_string()
+                                ));
+                            }
+                            index_before = mat.start();
+                        }
+                        // add the matching chars styled
+                        for (ind, color) in entry.special.clone() {
+                            if ind > index_before && ind < mat.end() {
+                                entry.spans.push(Span::styled(
+                                    entry.name.get(index_before..ind).unwrap().to_string(),
+                                    Style::default().fg(Color::Blue)
                                 ));
                                 entry.spans.push(Span::styled("/", Style::default().fg(color)));
                                 index_before = ind + 1;
+                            } else if ind == index_before {
+                                entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                                index_before += 1;
                             }
                         }
-                        if index_before < mat.start() {
-                            entry.spans.push(Span::from(
-                                entry.name.get(index_before..mat.start()).unwrap().to_string()
+                        if mat.end() > index_before {
+                            entry.spans.push(Span::styled(
+                                entry.name.get(index_before..mat.end()).unwrap().to_string(),
+                                Style::default().fg(Color::Blue)
                             ));
                         }
-                        index_before = mat.start();
+                        index_before = mat.end();
                     }
-                    // add the matching chars styled
+                    // add the rest of the chars (not styled)
                     for (ind, color) in entry.special.clone() {
-                        if ind > index_before && ind < mat.end() {
-                            entry.spans.push(Span::styled(
-                                entry.name.get(index_before..ind).unwrap().to_string(),
-                                Style::default().fg(Color::Blue)
+                        if ind > index_before && ind < entry.name.len() {
+                            entry.spans.push(Span::from(
+                                entry.name.get(index_before..ind).unwrap().to_string()
                             ));
                             entry.spans.push(Span::styled("/", Style::default().fg(color)));
                             index_before = ind + 1;
@@ -474,36 +502,58 @@ impl ContentWidget {
                             index_before += 1;
                         }
                     }
-                    if mat.end() > index_before {
-                        entry.spans.push(Span::styled(
-                            entry.name.get(index_before..mat.end()).unwrap().to_string(),
-                            Style::default().fg(Color::Blue)
-                        ));
-                    }
-                    index_before = mat.end();
-                }
-                // add the rest of the chars (not styled)
-                for (ind, color) in entry.special.clone() {
-                    if ind > index_before && ind < entry.name.len() {
+                    if entry.name.len() > index_before {
                         entry.spans.push(Span::from(
-                            entry.name.get(index_before..ind).unwrap().to_string()
+                            entry.name.get(index_before..entry.name.len()).unwrap().to_string()
                         ));
-                        entry.spans.push(Span::styled("/", Style::default().fg(color)));
-                        index_before = ind + 1;
-                    } else if ind == index_before {
-                        entry.spans.push(Span::styled("/", Style::default().fg(color)));
-                        index_before += 1;
                     }
+                    // finally push it to the displayed vector
+                    // which holds all entries that should get displayed to the user
+                    to_send.push(entry);
                 }
-                if entry.name.len() > index_before {
-                    entry.spans.push(Span::from(
-                        entry.name.get(index_before..entry.name.len()).unwrap().to_string()
-                    ));
-                }
-                // finally push it to the displayed vector
-                // which holds all entries that should get displayed to the user
-                self.displayed.push(entry.clone());
             }
+            to_send
+        };
+        // create multiple threads for each chunk
+        // to speed this whole thing up
+        // STEPS:
+        // 1. create max MAX_THREAD_AMOUNT chunks for max MAX_THREAD_AMOUNT threads
+        //      - each chunk should cotain more than MAX_THREAD_AMOUNT entries
+        // 2. create a mutix for self.displayed
+        // 3. assign each thread a chunk and run them
+        // 4. wait for the threads to finish
+        let mut threads = Vec::new();
+        let amount_of_threads = current_folder.len() / MAX_THREAD_AMOUNT as usize;
+        // don't bother with threads if the length is under MAX_THREAD_AMOUNT
+        if amount_of_threads == 0 {
+            self.displayed = filter_and_color(re, current_folder);
+            return;
+        }
+        let amount_of_entries = current_folder.len() / amount_of_threads;
+        let (tx, rx) = mpsc::channel();
+        // the last thread will include the rest of the entries
+        // because most of the time the amount of entries isn't a
+        // multiple of 'amount_of_threads'
+        for i in 0..(amount_of_threads - 1) {
+            let tx_clone = tx.clone();
+            let re_clone = re.clone();
+            let list = current_folder[(i * amount_of_entries)..((i + 1) * amount_of_entries)].to_vec();
+            threads.push(thread::spawn(move || { 
+                tx_clone.send(filter_and_color(
+                    re_clone, list
+                )).unwrap();
+            }));
+        }
+        // spawn the last thread that includes
+        // the rest of the entries
+        threads.push(thread::spawn(move || { 
+            tx.send(filter_and_color(
+                re, current_folder[(amount_of_threads - 1)..].to_vec()
+            )).unwrap();
+        }));
+        // wait for the threads to finish
+        for _ in 0..threads.len() {
+            self.displayed.append(&mut rx.recv().expect("Failed to receive from thread"));
         }
     }
 }
