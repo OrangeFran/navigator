@@ -1,11 +1,12 @@
-mod widgets;
-mod render;
-mod config;
+mod ui;
+mod tests;
 
 use clap::{Arg, App};
 
-use widgets::Direction;
-use widgets::{Selectable, ContentWidget, InfoWidget, SearchWidget};
+use ui::{
+    Direction, Selectable, 
+    ContentWidget, InfoWidget, SearchWidget
+};
 
 use std::fs::File;
 use std::path::Path;
@@ -84,7 +85,7 @@ fn main() {
     // config::read_config returns default values if the string is empty
     // and takes additional vlaues which can be configured at runtime
     // these can be also defined in the config file, but could get overwritten
-    let config = config::read_config(config.as_str(), lame);
+    let config = ui::read_config(config.as_str(), lame);
 
     // check if a seperator was provided
     // else fall back to \t (tab)
@@ -117,7 +118,7 @@ fn main() {
         let mut info_widget = InfoWidget::new(content_widget.displayed.len());
 
         // draw the layout for the first time
-        render::draw(&mut terminal, &content_widget, &search_widget, &info_widget, &selected, &config);
+        ui::draw(&mut terminal, &content_widget, &search_widget, &info_widget, &selected, &config);
 
         // start listening
         for event in tty.events() {
@@ -235,7 +236,7 @@ fn main() {
             }
 
             // update the tui
-            render::draw(&mut terminal, &content_widget, &search_widget, &info_widget, &selected, &config);
+            ui::draw(&mut terminal, &content_widget, &search_widget, &info_widget, &selected, &config);
         }
     }
 
@@ -244,84 +245,5 @@ fn main() {
     // prints to stderr for better usability (piping etc.)
     if !message.is_empty() {
         write!(stderr(), "{}\n", message).expect("Failed to write to stderr");
-    }
-}
-
-
-// tests that ensure that the from_string 'algorithm' works.
-// "cargo test" will run everytime I changed something in from_string or ContentWidget
-// to ensure stability.
-#[cfg(test)]
-mod tests {
-    use super::widgets::Entry;
-    use super::widgets::ContentWidget;
-    
-    impl ContentWidget {
-        // makes testing easier
-        pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
-            self.all.iter().map(|v| {
-                v.iter().map(|e| { e.revert() })
-                    .collect::<Vec<(String, Option<usize>)>>()
-            }).collect()
-        }
-    }
-
-    impl Entry {
-        // converts and Entry to a tuple
-        // reverted ::new method
-        pub fn revert(&self) -> (String, Option<usize>) {
-            (self.name.clone(), self.next)
-        }
-    }
-
-    // functions to create elements for a vector
-    // make writing tests a whole less verbose
-    fn single() -> (String, Option<usize>) {
-        (String::from("Single"), None)
-    }
-    fn folder(i: usize) -> (String, Option<usize>) {
-        (String::from("Folder"), Some(i))
-    }
-
-    #[test]
-    fn no_folders() {
-        let input = String::from("Single\nSingle\nSingle");
-        let seperator = String::from("\t");
-        assert_eq!(
-            ContentWidget::from_string(input, seperator).get_all_reverted(),
-            vec![vec![single(), single(), single()]]
-        );
-    }
-
-    #[test]
-    fn simple_folders() {
-        let input = String::from("Single\nFolder\n\tSingle\nSingle");
-        let seperator = String::from("\t");
-        assert_eq!(
-            ContentWidget::from_string(input, seperator).get_all_reverted(),
-            vec![vec![single(), folder(1), single()], vec![single()]]
-        );
-    }
-
-    #[test]
-    fn nested_folders() {
-        let input = String::from("Single\nFolder\n\tSingle\n\tFolder\n\t\tFolder\n\t\t\tSingle\n\tFolder\n\t\tSingle\nSingle");
-        let seperator = String::from("\t");
-        // sorry, it's a little long, hope you can read it
-        assert_eq!(
-            ContentWidget::from_string(input, seperator).get_all_reverted(),
-            vec![vec![single(), folder(1), single()], vec![single(), folder(2), folder(4)], vec![folder(3)], vec![single()], vec![single()]]
-        );
-    }
-
-    #[test]
-    fn nested_folders_custom_seperator() {
-        let input = String::from("Single\nFolder\ntabSingle\ntabFolder\ntabtabFolder\ntabtabtabSingle\ntabFolder\ntabtabSingle\nSingle");
-        let seperator = String::from("tab");
-        // sorry, it's a little long, hope you can read it
-        assert_eq!(
-            ContentWidget::from_string(input, seperator).get_all_reverted(),
-            vec![vec![single(), folder(1), single()], vec![single(), folder(2), folder(4)], vec![folder(3)], vec![single()], vec![single()]]
-        );
     }
 }
