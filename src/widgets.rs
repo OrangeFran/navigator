@@ -10,7 +10,7 @@ use tui::widgets::ListItem;
 use tui::text::{Text, Spans, Span};
 use tui::style::{Style, Modifier, Color};
 
-const MAX_THREAD_AMOUNT: i32 = 20;
+const MAX_THREAD_AMOUNT: usize = 20;
 
 // represents a selection
 // of all selctable widgets
@@ -147,6 +147,7 @@ enum DisplayMode {
 
 pub struct ContentWidget {
     pub all: Vec<Vec<Entry>>, // represents all elements
+    pub all_with_path: Vec<Entry>, // this saves a lot of time and resources
     pub selected: usize, // represents the currently selected element
     pub displayed: Vec<Entry>, // stores the currently displayed items
     path: Vec<(String, usize)>, // specifies the path the users is currently in (usize is equal to the index of self.all)
@@ -201,6 +202,7 @@ impl ContentWidget {
 
         Self {
             all: all.clone(),
+            all_with_path: Vec::new(),
             path: vec![("".to_string(), 0)],
             selected: 0,
             displayed: all[0].clone(),
@@ -355,7 +357,7 @@ impl ContentWidget {
     fn get_current_folder(&mut self) -> Vec<Entry> {
         match self.mode {
             DisplayMode::Structured => self.all[self.path[self.path.len() - 1].1].clone(),
-            DisplayMode::FullPath => self.get_all_displayed_path()
+            DisplayMode::FullPath => self.all_with_path.clone()
         }
     }
 
@@ -411,7 +413,8 @@ impl ContentWidget {
         match self.mode {
             DisplayMode::Structured => {
                 self.mode = DisplayMode::FullPath;
-                self.displayed = self.get_all_displayed_path();
+                self.all_with_path = self.get_all_displayed_path();
+                self.displayed = self.all_with_path.clone();
                 self.apply_search(self.search.clone());
             },
             DisplayMode::FullPath => {
@@ -523,14 +526,20 @@ impl ContentWidget {
         // 3. assign each thread a chunk and run them
         // 4. wait for the threads to finish
         let mut threads = Vec::new();
-        let amount_of_threads = current_folder.len() / MAX_THREAD_AMOUNT as usize;
+        let amount_of_threads = current_folder.len() / MAX_THREAD_AMOUNT;
         // don't bother with threads if the length is under MAX_THREAD_AMOUNT
         if amount_of_threads == 0 {
             self.displayed = filter_and_color(re, current_folder);
             return;
         }
+        // reduce the amount to MAX_THREAD_AMOUNT
+        // if it is bigger than MAX_THREAD_AMOUNT
+        let amount_of_threads = if amount_of_threads > MAX_THREAD_AMOUNT { 
+            MAX_THREAD_AMOUNT
+        } else { amount_of_threads };
         let amount_of_entries = current_folder.len() / amount_of_threads;
         let (tx, rx) = mpsc::channel();
+
         // the last thread will include the rest of the entries
         // because most of the time the amount of entries isn't a
         // multiple of 'amount_of_threads'
@@ -544,6 +553,7 @@ impl ContentWidget {
                 )).unwrap();
             }));
         }
+
         // spawn the last thread that includes
         // the rest of the entries
         threads.push(thread::spawn(move || { 
