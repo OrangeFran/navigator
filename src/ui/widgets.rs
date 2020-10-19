@@ -374,13 +374,14 @@ impl ContentWidget {
     // recursively go through one Entry and his children (.next elements)
     // used in conjunction with toggle_path_display_mode
     fn recursive_travel_entry(
-        &mut self,
+        // &mut self,
+        all: Vec<Vec<Entry>>,
         mut path: String,
         mut spans: Vec<Span<'static>>,
         mut special: Vec<(usize, Color)>,
         entry: Entry,
-        vec: &mut Vec<Entry>,
-    ) {
+    ) -> Vec<Entry> {
+        let mut vec = Vec::new();
         // create a new entry with no child
         path.push_str(&entry.name);
         spans.push(Span::from(entry.name.clone()));
@@ -394,28 +395,44 @@ impl ContentWidget {
             spans.push(Span::styled("/", Style::default().fg(Color::Red)));
             // and add a colored (red) seperator
             // update the .displayed
-            // reapply the search
-            // self.apply_search(self.search.clone());
-            for entry in self.all[p].clone() {
+            for entry in all[p].clone() {
                 // call the function again for each subelements (recursion)
-                self.recursive_travel_entry(
+                vec.append(&mut Self::recursive_travel_entry(
+                    all.clone(),
                     path.clone(),
                     spans.clone(),
                     special.clone(),
                     entry,
-                    vec,
-                );
+                ));
             }
         }
+        vec
     }
 
     // adds all elements with their full path as a string
     // starts from the folder the user is currently in
     // to the selected elements -> path search
     fn get_all_displayed_path(&mut self) -> Vec<Entry> {
-        let mut vec = Vec::new();
+        let mut threads = 0;
+        let (tx, rx) = mpsc::channel();
         for entry in self.all[self.path[self.path.len() - 1].1].clone() {
-            self.recursive_travel_entry(String::new(), Vec::new(), Vec::new(), entry, &mut vec);
+            // could speed up some things
+            let tx_clone = tx.clone();
+            let all_clone = self.all.clone();
+            thread::spawn(move || {
+                tx_clone.send(Self::recursive_travel_entry(
+                    all_clone,
+                    String::new(),
+                    Vec::new(),
+                    Vec::new(),
+                    entry,
+                )).expect("Failed to send over channel");
+            });
+            threads += 1;
+        }
+        let mut vec = Vec::new();
+        for _ in 0..threads {
+            vec.append(&mut rx.recv().expect("Failed to receive from thread"));
         }
         vec
     }
