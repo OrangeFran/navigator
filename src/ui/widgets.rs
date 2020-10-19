@@ -1,14 +1,14 @@
-extern crate tui;
 extern crate regex;
+extern crate tui;
 
-use std::thread;
 use std::sync::mpsc;
+use std::thread;
 
 use regex::Regex;
 
+use tui::style::{Color, Modifier, Style};
+use tui::text::{Span, Spans, Text};
 use tui::widgets::ListItem;
-use tui::text::{Text, Spans, Span};
-use tui::style::{Style, Modifier, Color};
 
 const MAX_THREAD_AMOUNT: usize = 20;
 
@@ -16,7 +16,7 @@ const MAX_THREAD_AMOUNT: usize = 20;
 // of all selctable widgets
 pub enum Selectable {
     Search,
-    List
+    List,
 }
 
 // this needs to be implemented by all paragraph widgets
@@ -41,18 +41,18 @@ pub struct Entry {
     pub name: String,
     spans: Vec<Span<'static>>,
     pub next: Option<usize>,
-    special: Vec<(usize, Color)>
+    special: Vec<(usize, Color)>,
 }
 
 impl Entry {
     pub fn new(name: String, next: Option<usize>, spans: Option<Vec<Span<'static>>>) -> Self {
         Self {
             name: name.clone(),
-            // just the default for now, 
+            // just the default for now,
             // gets changed anyway if necessary
             spans: spans.unwrap_or(vec![Span::from(name)]),
             next: next,
-            special: Vec::new()
+            special: Vec::new(),
         }
     }
 }
@@ -62,11 +62,11 @@ impl Entry {
 // for better readability.
 pub enum Direction {
     Up,
-    Down
+    Down,
 }
 
 pub struct SearchWidget {
-    pub content: String // represents the inputted chars
+    pub content: String, // represents the inputted chars
 }
 
 impl ParagraphWidget for SearchWidget {
@@ -83,7 +83,7 @@ impl ParagraphWidget for SearchWidget {
         if Regex::new(self.content.as_str()).is_err() {
             let spans = Spans::from(vec![Span::styled(
                 self.content.clone(),
-                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
             )]);
             Text::from(spans)
         } else {
@@ -95,12 +95,12 @@ impl ParagraphWidget for SearchWidget {
 impl SearchWidget {
     pub fn new() -> Self {
         Self {
-            content: String::new()
+            content: String::new(),
         }
     }
 
     pub fn add(&mut self, c: char) {
-        self.content.push(c); 
+        self.content.push(c);
     }
 
     pub fn pop(&mut self) {
@@ -117,7 +117,7 @@ impl SearchWidget {
 }
 
 pub struct InfoWidget {
-    pub count: usize // amount of elements in folder
+    pub count: usize, // amount of elements in folder
 }
 
 impl ParagraphWidget for InfoWidget {
@@ -131,9 +131,7 @@ impl ParagraphWidget for InfoWidget {
 
 impl InfoWidget {
     pub fn new(count: usize) -> Self {
-        Self {
-            count
-        }
+        Self { count }
     }
     pub fn update(&mut self, new_count: usize) {
         self.count = new_count;
@@ -142,17 +140,17 @@ impl InfoWidget {
 
 enum DisplayMode {
     Structured,
-    FullPath
+    FullPath,
 }
 
 pub struct ContentWidget {
-    pub all: Vec<Vec<Entry>>, // represents all elements
+    pub all: Vec<Vec<Entry>>,      // represents all elements
     pub all_with_path: Vec<Entry>, // this saves a lot of time and resources
-    pub selected: usize, // represents the currently selected element
-    pub displayed: Vec<Entry>, // stores the currently displayed items
+    pub selected: usize,           // represents the currently selected element
+    pub displayed: Vec<Entry>,     // stores the currently displayed items
     path: Vec<(String, usize)>, // specifies the path the users is currently in (usize is equal to the index of self.all)
-    search: String, // store the search keywords (get used in .display)
-    mode: DisplayMode
+    search: String,             // store the search keywords (get used in .display)
+    mode: DisplayMode,
 }
 
 impl ListWidget for ContentWidget {
@@ -207,33 +205,33 @@ impl ContentWidget {
             selected: 0,
             displayed: all[0].clone(),
             search: String::new(),
-            mode: DisplayMode::Structured
-        } 
+            mode: DisplayMode::Structured,
+        }
     }
 
-    // converts the given string to a ContentWidget    
+    // converts the given string to a ContentWidget
     // this is probably the holy method, that makes this project something usable
     pub fn from_string(string: String, sep: String) -> Self {
         // first, try with \t
         // custom seperators are coming
         let mut tuple_vec: Vec<Vec<Entry>> = vec![vec![]];
-    
+
         // checks for identifiers and returns how many it found
         let find_identifiers = |mut line: String| -> usize {
             let mut count = 0;
             loop {
                 if line.starts_with(&sep) {
-                    count += 1; 
+                    count += 1;
                     line = line.replacen(&sep, "", 1);
                     continue;
                 }
                 return count;
             }
         };
-        
+
         // stores the path in indexes to the current index
         // so the code can jump back into previous folders
-        let mut path = Vec::new(); 
+        let mut path = Vec::new();
         // stores the current index
         let mut current = 0;
         // used to compare identifiers
@@ -242,9 +240,9 @@ impl ContentWidget {
         let mut current_line: String;
         let mut next_line = match splitted_string.next() {
             Some(l) => l.to_string(),
-            None => panic!("String has no newlines!")
+            None => panic!("String has no newlines!"),
         };
-    
+
         loop {
             // assign the already processed next_line
             // to the current_line and handle it with the
@@ -260,9 +258,9 @@ impl ContentWidget {
 
             // check if it starts with \t
             // and with how many \t's and removes the automatically
-            count_idents_current = count_idents_next; 
-            count_idents_next = find_identifiers(next_line.clone()); 
-   
+            count_idents_current = count_idents_next;
+            count_idents_next = find_identifiers(next_line.clone());
+
             next_line = next_line.replace(&sep, "");
 
             // entry has a new subdirectory
@@ -274,12 +272,12 @@ impl ContentWidget {
                     tuple_vec.push(Vec::new());
                     let new_index = &tuple_vec.len() - 1;
                     tuple_vec[current].push(Entry::new(current_line, Some(new_index), None));
-               
+
                     // store information to find back
                     path.push(current);
                     // enter the subdirectory
                     current = new_index;
-                },
+                }
                 // directory gets closed
                 c if c < count_idents_current => {
                     tuple_vec[current].push(Entry::new(current_line, None, None));
@@ -290,19 +288,19 @@ impl ContentWidget {
                     for _ in 0..difference {
                         path.pop();
                     }
-                },
+                }
                 // in the same directory
-                _ => tuple_vec[current].push(Entry::new(current_line, None, None))
+                _ => tuple_vec[current].push(Entry::new(current_line, None, None)),
             }
         }
 
         Self::new(tuple_vec)
     }
-    
+
     // expand -> enter a folder
     pub fn expand(&mut self) {
         if let DisplayMode::Structured = self.mode {
-            // check if the element is actually expandable 
+            // check if the element is actually expandable
             let current_element = self.displayed[self.selected].clone();
             if let Some(new) = current_element.next {
                 // update .path
@@ -319,7 +317,7 @@ impl ContentWidget {
     // the opposite to expand
     pub fn back(&mut self) {
         if let DisplayMode::Structured = self.mode {
-            // remove the last element from path 
+            // remove the last element from path
             // and update .selected
             if self.path.len() != 1 {
                 self.path.pop();
@@ -340,7 +338,7 @@ impl ContentWidget {
                     self.selected -= 1;
                 }
             }
-            // scroll up, and 
+            // scroll up, and
             // if your're already at the bottom, nothing happens
             Direction::Down => {
                 if self.selected < self.displayed.len() - 1 {
@@ -357,7 +355,7 @@ impl ContentWidget {
     fn get_current_folder(&mut self) -> Vec<Entry> {
         match self.mode {
             DisplayMode::Structured => self.all[self.path[self.path.len() - 1].1].clone(),
-            DisplayMode::FullPath => self.all_with_path.clone()
+            DisplayMode::FullPath => self.all_with_path.clone(),
         }
     }
 
@@ -372,8 +370,12 @@ impl ContentWidget {
     // recursively go through one Entry and his children (.next elements)
     // used in conjunction with toggle_path_display_mode
     fn recursive_travel_entry(
-        &mut self, mut path: String, mut spans: Vec<Span<'static>>, 
-        mut special: Vec<(usize, Color)>, entry: Entry, vec: &mut Vec<Entry>
+        &mut self,
+        mut path: String,
+        mut spans: Vec<Span<'static>>,
+        mut special: Vec<(usize, Color)>,
+        entry: Entry,
+        vec: &mut Vec<Entry>,
     ) {
         // create a new entry with no child
         path.push_str(&entry.name);
@@ -392,7 +394,13 @@ impl ContentWidget {
             // self.apply_search(self.search.clone());
             for entry in self.all[p].clone() {
                 // call the function again for each subelements (recursion)
-                self.recursive_travel_entry(path.clone(), spans.clone(), special.clone(), entry, vec);
+                self.recursive_travel_entry(
+                    path.clone(),
+                    spans.clone(),
+                    special.clone(),
+                    entry,
+                    vec,
+                );
             }
         }
     }
@@ -416,7 +424,7 @@ impl ContentWidget {
                 self.all_with_path = self.get_all_displayed_path();
                 self.displayed = self.all_with_path.clone();
                 self.apply_search(self.search.clone());
-            },
+            }
             DisplayMode::FullPath => {
                 self.mode = DisplayMode::Structured;
                 self.displayed = self.all[self.path[self.path.len() - 1].1].clone();
@@ -429,7 +437,7 @@ impl ContentWidget {
     // - filter all the items
     // - style chars that match the regex
     pub fn apply_search(&mut self, keyword: String) {
-        self.search = keyword; 
+        self.search = keyword;
         let current_folder = self.get_current_folder();
         if self.search.is_empty() {
             self.displayed = current_folder;
@@ -438,7 +446,7 @@ impl ContentWidget {
         // if the regex failed, do nothing
         let re = match Regex::new(&self.search) {
             Ok(r) => r,
-            Err(_) => return
+            Err(_) => return,
         };
         // for safety reasons select the first element
         self.selected = 0;
@@ -451,7 +459,7 @@ impl ContentWidget {
                     // color the regex statements
                     let mut index_before = 0;
                     entry.spans = Vec::new();
-                    for mat in re.find_iter(&entry.name) {   
+                    for mat in re.find_iter(&entry.name) {
                         // add the string (not styled) up until the mathing chars
                         // all these if statement and loops check if there is a special
                         // character that should be colored differently (these are mostly
@@ -460,15 +468,21 @@ impl ContentWidget {
                             for (ind, color) in entry.special.clone() {
                                 if ind > index_before && ind < mat.start() {
                                     entry.spans.push(Span::from(
-                                        entry.name.get(index_before..ind).unwrap().to_string()
+                                        entry.name.get(index_before..ind).unwrap().to_string(),
                                     ));
-                                    entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                                    entry
+                                        .spans
+                                        .push(Span::styled("/", Style::default().fg(color)));
                                     index_before = ind + 1;
                                 }
                             }
                             if index_before < mat.start() {
                                 entry.spans.push(Span::from(
-                                    entry.name.get(index_before..mat.start()).unwrap().to_string()
+                                    entry
+                                        .name
+                                        .get(index_before..mat.start())
+                                        .unwrap()
+                                        .to_string(),
                                 ));
                             }
                             index_before = mat.start();
@@ -478,19 +492,23 @@ impl ContentWidget {
                             if ind > index_before && ind < mat.end() {
                                 entry.spans.push(Span::styled(
                                     entry.name.get(index_before..ind).unwrap().to_string(),
-                                    Style::default().fg(Color::Blue)
+                                    Style::default().fg(Color::Blue),
                                 ));
-                                entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                                entry
+                                    .spans
+                                    .push(Span::styled("/", Style::default().fg(color)));
                                 index_before = ind + 1;
                             } else if ind == index_before {
-                                entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                                entry
+                                    .spans
+                                    .push(Span::styled("/", Style::default().fg(color)));
                                 index_before += 1;
                             }
                         }
                         if mat.end() > index_before {
                             entry.spans.push(Span::styled(
                                 entry.name.get(index_before..mat.end()).unwrap().to_string(),
-                                Style::default().fg(Color::Blue)
+                                Style::default().fg(Color::Blue),
                             ));
                         }
                         index_before = mat.end();
@@ -499,18 +517,26 @@ impl ContentWidget {
                     for (ind, color) in entry.special.clone() {
                         if ind > index_before && ind < entry.name.len() {
                             entry.spans.push(Span::from(
-                                entry.name.get(index_before..ind).unwrap().to_string()
+                                entry.name.get(index_before..ind).unwrap().to_string(),
                             ));
-                            entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                            entry
+                                .spans
+                                .push(Span::styled("/", Style::default().fg(color)));
                             index_before = ind + 1;
                         } else if ind == index_before {
-                            entry.spans.push(Span::styled("/", Style::default().fg(color)));
+                            entry
+                                .spans
+                                .push(Span::styled("/", Style::default().fg(color)));
                             index_before += 1;
                         }
                     }
                     if entry.name.len() > index_before {
                         entry.spans.push(Span::from(
-                            entry.name.get(index_before..entry.name.len()).unwrap().to_string()
+                            entry
+                                .name
+                                .get(index_before..entry.name.len())
+                                .unwrap()
+                                .to_string(),
                         ));
                     }
                     // finally push it to the displayed vector
@@ -537,9 +563,11 @@ impl ContentWidget {
         }
         // reduce the amount to MAX_THREAD_AMOUNT
         // if it is bigger than MAX_THREAD_AMOUNT
-        let amount_of_threads = if amount_of_threads > MAX_THREAD_AMOUNT { 
+        let amount_of_threads = if amount_of_threads > MAX_THREAD_AMOUNT {
             MAX_THREAD_AMOUNT
-        } else { amount_of_threads };
+        } else {
+            amount_of_threads
+        };
         let amount_of_entries = current_folder.len() / amount_of_threads;
         let (tx, rx) = mpsc::channel();
 
@@ -549,24 +577,26 @@ impl ContentWidget {
         for i in 0..(amount_of_threads - 1) {
             let tx_clone = tx.clone();
             let re_clone = re.clone();
-            let list = current_folder[(i * amount_of_entries)..((i + 1) * amount_of_entries)].to_vec();
-            threads.push(thread::spawn(move || { 
-                tx_clone.send(filter_and_color(
-                    re_clone, list
-                )).unwrap();
+            let list =
+                current_folder[(i * amount_of_entries)..((i + 1) * amount_of_entries)].to_vec();
+            threads.push(thread::spawn(move || {
+                tx_clone.send(filter_and_color(re_clone, list)).unwrap();
             }));
         }
 
         // spawn the last thread that includes
         // the rest of the entries
-        threads.push(thread::spawn(move || { 
+        threads.push(thread::spawn(move || {
             tx.send(filter_and_color(
-                re, current_folder[(amount_of_threads - 1)..].to_vec()
-            )).unwrap();
+                re,
+                current_folder[(amount_of_threads - 1)..].to_vec(),
+            ))
+            .unwrap();
         }));
         // wait for the threads to finish
         for _ in 0..threads.len() {
-            self.displayed.append(&mut rx.recv().expect("Failed to receive from thread"));
+            self.displayed
+                .append(&mut rx.recv().expect("Failed to receive from thread"));
         }
     }
 }

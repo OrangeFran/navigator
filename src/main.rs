@@ -1,20 +1,17 @@
-mod ui;
 mod tests;
+mod ui;
 
-use clap::{Arg, App};
+use clap::{App, Arg};
 
-use ui::{
-    Direction, Selectable, 
-    ContentWidget, InfoWidget, SearchWidget
-};
+use ui::{ContentWidget, Direction, InfoWidget, SearchWidget, Selectable};
 
 use std::fs::File;
-use std::path::Path;
+use std::io::{stderr, stdin, stdout};
 use std::io::{Read, Write};
-use std::io::{stdin, stdout, stderr};
+use std::path::Path;
 
-use tui::terminal::Terminal;
 use tui::backend::TermionBackend;
+use tui::terminal::Terminal;
 
 use termion::event::{Event, Key};
 use termion::input::TermRead;
@@ -26,26 +23,33 @@ fn main() {
         .version("0.1")
         .author("Finn H.")
         .about("Look at output with ease!")
-        .arg(Arg::with_name("INPUT")
-             .help("Specify input, reads from stdin if none"))
-        .arg(Arg::with_name("seperator")
-             .short("s")
-             .long("seperator")
-             .takes_value(true)
-             .help("Specify the seperator that the parsing is based on"))
-        .arg(Arg::with_name("config")
-             .short("c")
-             .long("config")
-             .value_name("FILE")
-             .takes_value(true)
-             .help("Specify the path to the config file"))
-        .arg(Arg::with_name("full-path")
-             .long("full-path")
-             .help("Return the full path of the item"))
-        .arg(Arg::with_name("lame")
-             .short("l")
-             .long("lame")
-             .help("Hide emojis"))
+        .arg(Arg::with_name("INPUT").help("Specify input, reads from stdin if none"))
+        .arg(
+            Arg::with_name("seperator")
+                .short("s")
+                .long("seperator")
+                .takes_value(true)
+                .help("Specify the seperator that the parsing is based on"),
+        )
+        .arg(
+            Arg::with_name("config")
+                .short("c")
+                .long("config")
+                .value_name("FILE")
+                .takes_value(true)
+                .help("Specify the path to the config file"),
+        )
+        .arg(
+            Arg::with_name("full-path")
+                .long("full-path")
+                .help("Return the full path of the item"),
+        )
+        .arg(
+            Arg::with_name("lame")
+                .short("l")
+                .long("lame")
+                .help("Hide emojis"),
+        )
         .get_matches();
 
     // look for boolean flags and save the state
@@ -60,7 +64,8 @@ fn main() {
     if let Some(r) = matches.value_of("INPUT") {
         input = r.to_string();
     } else {
-        stdin().read_to_string(&mut input)
+        stdin()
+            .read_to_string(&mut input)
             .expect("Failed to receive from stdin");
         // reading from stdin adds a '\n' to the end -> remove that
         input.remove(input.len() - 1);
@@ -89,8 +94,7 @@ fn main() {
 
     // check if a seperator was provided
     // else fall back to \t (tab)
-    let seperator = matches.value_of("seperator")
-        .unwrap_or("\t").to_string();
+    let seperator = matches.value_of("seperator").unwrap_or("\t").to_string();
 
     // message that get's outputted
     // gets filled inside the for loop
@@ -99,13 +103,15 @@ fn main() {
     // i'm too stupid to deinitalize the stdout grabber
     // that termion creates so I put that stuff into brackets
     // so it deinitializes it automatically
-    {    
+    {
         // use tty instead of stdin
         // because stdin could be blocked by the user input
         let tty = termion::get_tty().expect("Could not find tty!");
-            
+
         // set up the terminal -> into raw mode
-        let raw = stdout().into_raw_mode().expect("Failed to put the terminal into raw mode");
+        let raw = stdout()
+            .into_raw_mode()
+            .expect("Failed to put the terminal into raw mode");
         let backend = TermionBackend::new(raw);
         let mut terminal = Terminal::new(backend).expect("Failed to create the terminal");
 
@@ -118,7 +124,14 @@ fn main() {
         let mut info_widget = InfoWidget::new(content_widget.displayed.len());
 
         // draw the layout for the first time
-        ui::draw(&mut terminal, &content_widget, &search_widget, &info_widget, &selected, &config);
+        ui::draw(
+            &mut terminal,
+            &content_widget,
+            &search_widget,
+            &info_widget,
+            &selected,
+            &config,
+        );
 
         // start listening
         for event in tty.events() {
@@ -127,7 +140,7 @@ fn main() {
             if event.is_err() {
                 continue;
             }
-        
+
             match selected {
                 Selectable::Search => {
                     match event.unwrap() {
@@ -140,7 +153,7 @@ fn main() {
                         Event::Key(Key::Char('\n')) => {
                             if !content_widget.displayed.is_empty() {
                                 selected = Selectable::List;
-                            }    
+                            }
                         }
                         // add the char to the search
                         Event::Key(Key::Char(c)) => {
@@ -183,7 +196,7 @@ fn main() {
                             content_widget.expand();
                             info_widget.update(content_widget.displayed.len());
                             if content_widget.displayed.is_empty() {
-                                selected = Selectable::Search; 
+                                selected = Selectable::Search;
                             }
                         }
                         // go back an element
@@ -193,7 +206,7 @@ fn main() {
                             content_widget.back();
                             info_widget.update(content_widget.displayed.len());
                             if content_widget.displayed.is_empty() {
-                                selected = Selectable::Search; 
+                                selected = Selectable::Search;
                             }
                         }
                         // display all elements with their whole path
@@ -218,7 +231,14 @@ fn main() {
                             if full_path {
                                 // the slash between is not necessary because it's provided by the
                                 // .get_path method
-                                message.push_str(format!("{}{}", &content_widget.get_path(), &content_widget.get_name()).as_str());
+                                message.push_str(
+                                    format!(
+                                        "{}{}",
+                                        &content_widget.get_path(),
+                                        &content_widget.get_name()
+                                    )
+                                    .as_str(),
+                                );
                             } else {
                                 message.push_str(&content_widget.get_name());
                             }
@@ -236,7 +256,14 @@ fn main() {
             }
 
             // update the tui
-            ui::draw(&mut terminal, &content_widget, &search_widget, &info_widget, &selected, &config);
+            ui::draw(
+                &mut terminal,
+                &content_widget,
+                &search_widget,
+                &info_widget,
+                &selected,
+                &config,
+            );
         }
     }
 
