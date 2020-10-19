@@ -1,8 +1,8 @@
+mod logger;
 mod tests;
 mod ui;
 
-use clap::{App, Arg};
-
+use logger::FileLogger;
 use ui::{ContentWidget, Direction, InfoWidget, SearchWidget, Selectable};
 
 use std::fs::File;
@@ -10,12 +10,15 @@ use std::io::{stderr, stdin, stdout};
 use std::io::{Read, Write};
 use std::path::Path;
 
+use clap::{App, Arg};
 use tui::backend::TermionBackend;
 use tui::terminal::Terminal;
-
 use termion::event::{Event, Key};
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
+
+// create a logger
+static LOGGER: FileLogger = FileLogger::empty();
 
 fn main() {
     // setup the cli app
@@ -25,11 +28,12 @@ fn main() {
         .about("Look at output with ease!")
         .arg(Arg::with_name("INPUT").help("Specify input, reads from stdin if none"))
         .arg(
-            Arg::with_name("seperator")
+            Arg::with_name("separator")
                 .short("s")
-                .long("seperator")
+                .long("separator")
+                .value_name("SEPARATOR")
                 .takes_value(true)
-                .help("Specify the seperator that the parsing is based on"),
+                .help("Separate level with SEPARATOR"),
         )
         .arg(
             Arg::with_name("config")
@@ -37,7 +41,7 @@ fn main() {
                 .long("config")
                 .value_name("FILE")
                 .takes_value(true)
-                .help("Specify the path to the config file"),
+                .help("Use configurations from FILE"),
         )
         .arg(
             Arg::with_name("full-path")
@@ -50,7 +54,21 @@ fn main() {
                 .long("lame")
                 .help("Hide emojis"),
         )
+        .arg(
+            Arg::with_name("debug")
+                .long("debug")
+                .value_name("FILE")
+                .takes_value(true)
+                .help("Send debugging information to FILE"),
+        )
         .get_matches();
+
+    // the logger was already created
+    // if '--debug' was specified, add a file
+    // so the logger actually outputs something
+    if let Some(f) = matches.value_of("debug") {
+        LOGGER.set_logfile(f);
+    }
 
     // look for boolean flags and save the state
     // in a variable for easier access
@@ -94,7 +112,7 @@ fn main() {
 
     // check if a seperator was provided
     // else fall back to \t (tab)
-    let seperator = matches.value_of("seperator").unwrap_or("\t").to_string();
+    let separator = matches.value_of("separator").unwrap_or("\t").to_string();
 
     // message that get's outputted
     // gets filled inside the for loop
@@ -120,7 +138,7 @@ fn main() {
 
         let mut selected = Selectable::List;
         let mut search_widget = SearchWidget::new();
-        let mut content_widget = ContentWidget::from_string(input, seperator);
+        let mut content_widget = ContentWidget::from_string(input, separator);
         let mut info_widget = InfoWidget::new(content_widget.displayed.len());
 
         // draw the layout for the first time
