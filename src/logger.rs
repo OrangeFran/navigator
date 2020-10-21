@@ -1,5 +1,5 @@
-use std::fs::File;
 use std::fmt::Display;
+use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -16,8 +16,14 @@ impl FileLogger {
     }
 
     pub fn set_logfile<S: ToString>(&mut self, file_name: S) {
-        self.file = Some(File::create(file_name.to_string())
-            .expect("Failed to open the file"));
+        // only create new files
+        // so you do not accidentally overwrite important files
+        self.file = Some(
+            OpenOptions::new()
+                .create_new(true)
+                .open(file_name.to_string())
+                .expect("Failed to open the file")
+        );
     }
 
     pub fn log<D: Display>(&mut self, msg: D) {
