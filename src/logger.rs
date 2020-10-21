@@ -20,6 +20,7 @@ impl FileLogger {
         // so you do not accidentally overwrite important files
         self.file = Some(
             OpenOptions::new()
+                .write(true)
                 .create_new(true)
                 .open(file_name.to_string())
                 .expect("Failed to open the file")
