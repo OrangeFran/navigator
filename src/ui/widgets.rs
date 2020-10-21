@@ -586,7 +586,6 @@ impl ContentWidget {
             threads.push(thread::spawn(move || {
                 tx_clone.send(filter_and_color(re_clone, list)).unwrap();
             }));
-            self.logger.log("Hi there!");
         }
 
         // spawn the last thread that includes

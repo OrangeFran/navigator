@@ -28,7 +28,7 @@ impl FileLogger {
                 .expect("Time went backwards");
             // write the msg with the current time to the file
             f.write_all(
-                format!("{:?} - {}\n", now, msg).as_bytes()
+                format!("{:?} \t- {}\n", now, msg).as_bytes()
             ).expect("Failed to write to the logfile");
         }
     }
