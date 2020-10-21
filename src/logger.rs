@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 // simple logger that outputs to a file
-struct FileLogger {
+pub struct FileLogger {
     file: Option<File>
 }
 
@@ -15,8 +15,8 @@ impl FileLogger {
         }
     }
 
-    pub fn set_logfile(&mut self, file_name: String) {
-        self.file = Some(File::open(file_name)
+    pub fn set_logfile<S: ToString>(&mut self, file_name: S) {
+        self.file = Some(File::create(file_name.to_string())
             .expect("Failed to open the file"));
     }
 
