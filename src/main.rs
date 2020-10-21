@@ -17,9 +17,6 @@ use termion::event::{Event, Key};
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
-// create a logger
-static LOGGER: FileLogger = FileLogger::empty();
-
 fn main() {
     // setup the cli app
     let matches = App::new("navigator")
@@ -63,11 +60,12 @@ fn main() {
         )
         .get_matches();
 
-    // the logger was already created
+    let mut logger = FileLogger::empty();
     // if '--debug' was specified, add a file
     // so the logger actually outputs something
     if let Some(f) = matches.value_of("debug") {
-        LOGGER.set_logfile(f);
+        logger.set_logfile(f);
+        logger.log("Logging!");
     }
 
     // look for boolean flags and save the state
@@ -138,7 +136,7 @@ fn main() {
 
         let mut selected = Selectable::List;
         let mut search_widget = SearchWidget::new();
-        let mut content_widget = ContentWidget::from_string(input, separator);
+        let mut content_widget = ContentWidget::from_string(input, separator, logger);
         let mut info_widget = InfoWidget::new(content_widget.displayed.len());
 
         // draw the layout for the first time

@@ -1,6 +1,8 @@
 extern crate regex;
 extern crate tui;
 
+use crate::logger::FileLogger;
+
 use std::sync::mpsc;
 use std::thread;
 
@@ -39,8 +41,8 @@ pub trait ListWidget {
 #[derive(Clone, Debug)]
 pub struct Entry {
     pub name: String,
-    spans: Vec<Span<'static>>,
     pub next: Option<usize>,
+    spans: Vec<Span<'static>>,
     special: Vec<(usize, Color)>,
 }
 
@@ -151,6 +153,7 @@ pub struct ContentWidget {
     path: Vec<(String, usize)>, // specifies the path the users is currently in (usize is equal to the index of self.all)
     search: String,             // store the search keywords (get used in .display)
     mode: DisplayMode,
+    logger: FileLogger,
 }
 
 impl ListWidget for ContentWidget {
@@ -192,7 +195,7 @@ impl ListWidget for ContentWidget {
 impl ContentWidget {
     // simply populate a basic
     // ContentWidget with default values
-    pub fn new(all: Vec<Vec<Entry>>) -> Self {
+    pub fn new(all: Vec<Vec<Entry>>, logger: FileLogger) -> Self {
         // abort if v has no entries
         if all.is_empty() {
             panic!("no content");
@@ -206,12 +209,13 @@ impl ContentWidget {
             displayed: all[0].clone(),
             search: String::new(),
             mode: DisplayMode::Structured,
+            logger: logger,
         }
     }
 
     // converts the given string to a ContentWidget
     // this is probably the holy method, that makes this project something usable
-    pub fn from_string(string: String, sep: String) -> Self {
+    pub fn from_string(string: String, sep: String, logger: FileLogger) -> Self {
         // first, try with \t
         // custom seperators are coming
         let mut tuple_vec: Vec<Vec<Entry>> = vec![vec![]];
@@ -294,7 +298,7 @@ impl ContentWidget {
             }
         }
 
-        Self::new(tuple_vec)
+        Self::new(tuple_vec, logger)
     }
 
     // expand -> enter a folder
@@ -582,6 +586,7 @@ impl ContentWidget {
             threads.push(thread::spawn(move || {
                 tx_clone.send(filter_and_color(re_clone, list)).unwrap();
             }));
+            self.logger.log("Hi there!");
         }
 
         // spawn the last thread that includes
