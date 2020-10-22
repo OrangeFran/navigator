@@ -593,7 +593,7 @@ impl ContentWidget {
         threads.push(thread::spawn(move || {
             tx.send(filter_and_color(
                 re,
-                current_folder[(amount_of_threads - 1)..].to_vec(),
+                current_folder[((amount_of_threads - 1) * amount_of_entries)..].to_vec(),
             ))
             .unwrap();
         }));
