@@ -1,7 +1,7 @@
 extern crate regex;
 extern crate tui;
 
-use crate::logger::FileLogger;
+use crate::util::FileLogger;
 
 use std::sync::mpsc;
 use std::thread;
