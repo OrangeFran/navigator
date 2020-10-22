@@ -1,8 +1,8 @@
-mod logger;
+mod util;
 mod tests;
 mod ui;
 
-use logger::FileLogger;
+use util::FileLogger;
 use ui::{ContentWidget, Direction, InfoWidget, SearchWidget, Selectable};
 
 use std::fs::File;
