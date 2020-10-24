@@ -5,14 +5,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 // simple logger that outputs to a file
 pub struct FileLogger {
-    file: Option<File>
+    file: Option<File>,
 }
 
 impl FileLogger {
     pub const fn empty() -> Self {
-        Self {
-            file: None
-        }
+        Self { file: None }
     }
 
     pub fn set_logfile<S: ToString>(&mut self, file_name: S) {
@@ -23,7 +21,7 @@ impl FileLogger {
                 .write(true)
                 .create_new(true)
                 .open(file_name.to_string())
-                .expect("Failed to open the file")
+                .expect("Failed to open the file"),
         );
     }
 
@@ -34,9 +32,8 @@ impl FileLogger {
                 .duration_since(UNIX_EPOCH)
                 .expect("Time went backwards");
             // write the msg with the current time to the file
-            f.write_all(
-                format!("{:?} \t- {}\n", now, msg).as_bytes()
-            ).expect("Failed to write to the logfile");
+            f.write_all(format!("{:?} \t- {}\n", now, msg).as_bytes())
+                .expect("Failed to write to the logfile");
         }
     }
 }

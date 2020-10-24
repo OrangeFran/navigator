@@ -165,6 +165,7 @@ impl ListWidget for ContentWidget {
             format!(" {} /{} ", prefix, path)
         }
     }
+
     fn display(&self, lame: bool, prefix: String) -> Vec<ListItem> {
         let mut vec = Vec::new();
         for entry in &self.displayed {

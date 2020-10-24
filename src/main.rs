@@ -1,9 +1,9 @@
-mod util;
 mod tests;
 mod ui;
+mod util;
 
-use util::FileLogger;
 use ui::{ContentWidget, Direction, InfoWidget, SearchWidget, Selectable};
+use util::FileLogger;
 
 use std::fs::File;
 use std::io::{stderr, stdin, stdout};
@@ -11,11 +11,11 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use clap::{App, Arg};
-use tui::backend::TermionBackend;
-use tui::terminal::Terminal;
 use termion::event::{Event, Key};
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
+use tui::backend::TermionBackend;
+use tui::terminal::Terminal;
 
 fn main() {
     // setup the cli app
