@@ -4,6 +4,11 @@
 
 - [x] Do not allow scrolling over files you don't see (appears when searching for files).
 
+### Currently working on:
+
+- [ ] Improve speed with larger inputs
+    - Move large data vectors to the heap and work with pointers (Arc)
+
 ### Plans
 
 - [x] Add live search. It updates while searching so you find your stuff better.
