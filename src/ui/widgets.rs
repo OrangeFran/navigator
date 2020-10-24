@@ -145,13 +145,17 @@ enum DisplayMode {
     FullPath,
 }
 
+pub struct Content {
+    pub all: Vec<Vec<Entry>>,        // represents all elements
+    pub all_with_path: Vec<Entry>,  // this saves a lot of time and resources
+    pub displayed: Vec<Entry>,      // stores the currently displayed items
+}
+
 pub struct ContentWidget {
-    pub all: Vec<Vec<Entry>>,      // represents all elements
-    pub all_with_path: Vec<Entry>, // this saves a lot of time and resources
-    pub selected: usize,           // represents the currently selected element
-    pub displayed: Vec<Entry>,     // stores the currently displayed items
-    path: Vec<(String, usize)>, // specifies the path the users is currently in (usize is equal to the index of self.all)
-    search: String,             // store the search keywords (get used in .display)
+    pub content: Content,
+    pub selected: usize,            // represents the currently selected element
+    path: Vec<(String, usize)>,     // usize is equal to the index of self.all
+    search: String,                 // store the search keywords (get used in .display)
     mode: DisplayMode,
     logger: FileLogger,
 }
@@ -168,7 +172,7 @@ impl ListWidget for ContentWidget {
 
     fn display(&self, lame: bool, prefix: String) -> Vec<ListItem> {
         let mut vec = Vec::new();
-        for entry in &self.displayed {
+        for entry in &self.content.displayed {
             // add icons for better visbility
             let mut spans = if !lame && entry.next.is_some() {
                 // add the prefix
@@ -203,11 +207,9 @@ impl ContentWidget {
         }
 
         Self {
-            all: all.clone(),
-            all_with_path: Vec::new(),
+            content: Content { all: all.clone(), all_with_path: Vec::new(), displayed: all[0].clone() },
             path: vec![("".to_string(), 0)],
             selected: 0,
-            displayed: all[0].clone(),
             search: String::new(),
             mode: DisplayMode::Structured,
             logger: logger,
@@ -306,7 +308,7 @@ impl ContentWidget {
     pub fn expand(&mut self) {
         if let DisplayMode::Structured = self.mode {
             // check if the element is actually expandable
-            let current_element = self.displayed[self.selected].clone();
+            let current_element = self.content.displayed[self.selected].clone();
             if let Some(new) = current_element.next {
                 // update .path
                 self.path.push((current_element.name, new));
@@ -346,7 +348,7 @@ impl ContentWidget {
             // scroll up, and
             // if your're already at the bottom, nothing happens
             Direction::Down => {
-                if self.selected < self.displayed.len() - 1 {
+                if self.selected < self.content.displayed.len() - 1 {
                     self.selected += 1;
                 }
             }
@@ -354,13 +356,13 @@ impl ContentWidget {
     }
 
     pub fn get_name(&self) -> String {
-        self.displayed[self.selected].name.clone()
+        self.content.displayed[self.selected].name.clone()
     }
 
     fn get_current_folder(&mut self) -> Vec<Entry> {
         match self.mode {
-            DisplayMode::Structured => self.all[self.path[self.path.len() - 1].1].clone(),
-            DisplayMode::FullPath => self.all_with_path.clone(),
+            DisplayMode::Structured => self.content.all[self.path[self.path.len() - 1].1].clone(),
+            DisplayMode::FullPath => self.content.all_with_path.clone(),
         }
     }
 
@@ -397,7 +399,7 @@ impl ContentWidget {
             // update the .displayed
             // reapply the search
             // self.apply_search(self.search.clone());
-            for entry in self.all[p].clone() {
+            for entry in self.content.all[p].clone() {
                 // call the function again for each subelements (recursion)
                 self.recursive_travel_entry(
                     path.clone(),
@@ -415,7 +417,7 @@ impl ContentWidget {
     // to the selected elements -> path search
     fn get_all_displayed_path(&mut self) -> Vec<Entry> {
         let mut vec = Vec::new();
-        for entry in self.all[self.path[self.path.len() - 1].1].clone() {
+        for entry in self.content.all[self.path[self.path.len() - 1].1].clone() {
             self.recursive_travel_entry(String::new(), Vec::new(), Vec::new(), entry, &mut vec);
         }
         vec
@@ -426,13 +428,13 @@ impl ContentWidget {
         match self.mode {
             DisplayMode::Structured => {
                 self.mode = DisplayMode::FullPath;
-                self.all_with_path = self.get_all_displayed_path();
-                self.displayed = self.all_with_path.clone();
+                self.content.all_with_path = self.get_all_displayed_path();
+                self.content.displayed = self.content.all_with_path.clone();
                 self.apply_search(self.search.clone());
             }
             DisplayMode::FullPath => {
                 self.mode = DisplayMode::Structured;
-                self.displayed = self.all[self.path[self.path.len() - 1].1].clone();
+                self.content.displayed = self.content.all[self.path[self.path.len() - 1].1].clone();
                 self.apply_search(self.search.clone());
             }
         }
@@ -445,7 +447,7 @@ impl ContentWidget {
         self.search = keyword;
         let current_folder = self.get_current_folder();
         if self.search.is_empty() {
-            self.displayed = current_folder;
+            self.content.displayed = current_folder;
             return;
         }
         // if the regex failed, do nothing
@@ -455,7 +457,7 @@ impl ContentWidget {
         };
         // for safety reasons select the first element
         self.selected = 0;
-        self.displayed = Vec::new();
+        self.content.displayed = Vec::new();
         let filter_and_color = |re: Regex, list: Vec<Entry>| -> Vec<Entry> {
             let mut to_send = Vec::new();
             for mut entry in list {
@@ -551,6 +553,7 @@ impl ContentWidget {
             }
             to_send
         };
+
         // create multiple threads for each chunk
         // to speed this whole thing up
         // STEPS:
@@ -559,11 +562,11 @@ impl ContentWidget {
         // 2. create a mutix for self.displayed
         // 3. assign each thread a chunk and run them
         // 4. wait for the threads to finish
-        let mut threads = Vec::new();
+        let mut threads = 0;
         let amount_of_threads = current_folder.len() / MAX_THREAD_AMOUNT;
         // don't bother with threads if the length is under MAX_THREAD_AMOUNT
         if amount_of_threads == 0 {
-            self.displayed = filter_and_color(re, current_folder);
+            self.content.displayed = filter_and_color(re, current_folder);
             return;
         }
         // reduce the amount to MAX_THREAD_AMOUNT
@@ -584,23 +587,26 @@ impl ContentWidget {
             let re_clone = re.clone();
             let list =
                 current_folder[(i * amount_of_entries)..((i + 1) * amount_of_entries)].to_vec();
-            threads.push(thread::spawn(move || {
+            thread::spawn(move || {
                 tx_clone.send(filter_and_color(re_clone, list)).unwrap();
-            }));
+            });
+            threads += 1;
         }
 
         // spawn the last thread that includes
         // the rest of the entries
-        threads.push(thread::spawn(move || {
+        thread::spawn(move || {
             tx.send(filter_and_color(
                 re,
                 current_folder[((amount_of_threads - 1) * amount_of_entries)..].to_vec(),
             ))
             .unwrap();
-        }));
+        });
+        threads += 1;
+
         // wait for the threads to finish
-        for _ in 0..threads.len() {
-            self.displayed
+        for _ in 0..threads {
+            self.content.displayed
                 .append(&mut rx.recv().expect("Failed to receive from thread"));
         }
     }
