@@ -7,7 +7,8 @@
 ### Currently working on:
 
 - [ ] Improve speed with larger inputs
-    - Move large data vectors to the heap and work with pointers (Arc)
+    - [x] Move large data vectors to the heap and work with pointers (Arc)
+    - [ ] Let the tui only display the data you see on the screen
 
 ### Plans
 
