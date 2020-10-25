@@ -137,7 +137,7 @@ fn main() {
         let mut selected = Selectable::List;
         let mut search_widget = SearchWidget::new();
         let mut content_widget = ContentWidget::from_string(input, separator, logger);
-        let mut info_widget = InfoWidget::new(content_widget.content.displayed.len());
+        let mut info_widget = InfoWidget::new(content_widget.displayed.len());
 
         // draw the layout for the first time
         ui::draw(
@@ -167,7 +167,7 @@ fn main() {
                         // else block the switch (the user can escape with esc or search for
                         // something different)
                         Event::Key(Key::Char('\n')) => {
-                            if !content_widget.content.displayed.is_empty() {
+                            if !content_widget.displayed.is_empty() {
                                 selected = Selectable::List;
                             }
                         }
@@ -175,13 +175,13 @@ fn main() {
                         Event::Key(Key::Char(c)) => {
                             search_widget.add(c);
                             content_widget.apply_search(search_widget.get_content());
-                            info_widget.update(content_widget.content.displayed.len());
+                            info_widget.update(content_widget.displayed.len());
                         }
                         // remove the last char from the search
                         Event::Key(Key::Backspace) => {
                             search_widget.pop();
                             content_widget.apply_search(search_widget.get_content());
-                            info_widget.update(content_widget.content.displayed.len());
+                            info_widget.update(content_widget.displayed.len());
                         }
                         // switch back to the list view
                         // do not keep the search
@@ -189,7 +189,7 @@ fn main() {
                             selected = Selectable::List;
                             search_widget.clear();
                             content_widget.apply_search(search_widget.get_content());
-                            info_widget.update(content_widget.content.displayed.len());
+                            info_widget.update(content_widget.displayed.len());
                         }
 
                         _ => {}
@@ -210,8 +210,8 @@ fn main() {
                         // enter the folder and directly switch to the search
                         Event::Key(Key::Right) | Event::Key(Key::Char('l')) => {
                             content_widget.expand();
-                            info_widget.update(content_widget.content.displayed.len());
-                            if content_widget.content.displayed.is_empty() {
+                            info_widget.update(content_widget.displayed.len());
+                            if content_widget.displayed.is_empty() {
                                 selected = Selectable::Search;
                             }
                         }
@@ -220,14 +220,15 @@ fn main() {
                         // enter the folder and directly switch to the search
                         Event::Key(Key::Left) | Event::Key(Key::Char('h')) => {
                             content_widget.back();
-                            info_widget.update(content_widget.content.displayed.len());
-                            if content_widget.content.displayed.is_empty() {
+                            info_widget.update(content_widget.displayed.len());
+                            if content_widget.displayed.is_empty() {
                                 selected = Selectable::Search;
                             }
                         }
                         // display all elements with their whole path
                         Event::Key(Key::Char('p')) => {
                             content_widget.toggle_display_mode();
+                            info_widget.update(content_widget.displayed.len());
                         }
                         // go to the top
                         Event::Key(Key::Char('g')) => {
@@ -235,7 +236,7 @@ fn main() {
                         }
                         // go to the bottom
                         Event::Key(Key::Char('G')) => {
-                            content_widget.selected = content_widget.content.displayed.len() - 1;
+                            content_widget.selected = content_widget.displayed.len() - 1;
                         }
                         // switch to search widget
                         Event::Key(Key::Char('/')) => {
