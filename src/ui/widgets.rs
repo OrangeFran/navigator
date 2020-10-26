@@ -1,10 +1,6 @@
-extern crate regex;
-extern crate tui;
-
 use crate::util::FileLogger;
 
 use std::sync::Arc;
-
 use std::sync::mpsc;
 use std::thread;
 
@@ -12,9 +8,10 @@ use regex::Regex;
 
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans, Text};
+use tui::layout::Rect;
 use tui::widgets::ListItem;
 
-const MAX_THREAD_AMOUNT: usize = 20;
+const MAX_THREAD_AMOUNT: usize = 100;
 
 // represents a selection
 // of all selctable widgets
@@ -31,8 +28,9 @@ pub trait ParagraphWidget {
 
 // this needs to be implemented by all list widgets
 pub trait ListWidget {
+    fn get_selected(&self, size: Rect) -> usize;
     fn get_title(&self, lame: bool, prefix: String) -> String;
-    fn display(&self, lame: bool, prefix: String) -> Vec<ListItem>;
+    fn display(&self, size: Rect, lame: bool, prefix: String) -> Vec<ListItem>;
 }
 
 // a default entry with a name
@@ -163,6 +161,12 @@ pub struct ContentWidget {
 }
 
 impl ListWidget for ContentWidget {
+    // needs to be improved
+    fn get_selected(&self, size: Rect) -> usize {
+        // let max_displayed = size.height as usize;
+        0
+    }
+
     fn get_title(&self, lame: bool, prefix: String) -> String {
         let path = self.get_path();
         if lame {
@@ -172,9 +176,9 @@ impl ListWidget for ContentWidget {
         }
     }
 
-    fn display(&self, lame: bool, prefix: String) -> Vec<ListItem> {
+    fn display(&self, size: Rect, lame: bool, prefix: String) -> Vec<ListItem> {
         let mut vec = Vec::new();
-        for entry in &self.displayed {
+        let create_list_item = |entry: &Entry| -> ListItem {
             // add icons for better visbility
             let mut spans = if !lame && entry.next.is_some() {
                 // add the prefix
@@ -183,7 +187,21 @@ impl ListWidget for ContentWidget {
                 vec![Span::from("    ")]
             };
             spans.extend(entry.spans.clone());
-            vec.push(ListItem::new(Text::from(Spans::from(spans))));
+            ListItem::new(Text::from(Spans::from(spans)))
+        };
+        // only display the entries the user can look at
+        // (this saves a lot of time with bigger vectors)
+        // every line takes up a size of 3
+        let max_displayed = size.height as usize;
+        if (self.displayed.len() - self.selected) > max_displayed {
+            let end = self.selected + max_displayed;
+            for entry in &self.displayed[self.selected..end] {
+                vec.push(create_list_item(entry));
+            }
+        } else {
+            for entry in &self.displayed[self.selected..] {
+                vec.push(create_list_item(entry));
+            }
         }
 
         // if the vector is empty

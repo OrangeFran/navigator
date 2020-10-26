@@ -95,14 +95,14 @@ pub fn draw<B: Backend>(
             // the scrollable list view
             let mut list_widget_state = ListState::default();
             let list_widget_content =
-                list_widget.display(config.lame, config.prefixes.folder.clone());
+                list_widget.display(f.size(), config.lame, config.prefixes.folder.clone());
             let list_widget_title =
                 list_widget.get_title(config.lame, config.prefixes.list.clone());
             let list_widget_list = List::new(list_widget_content)
                 .block({
                     match selected {
                         Selectable::List => {
-                            list_widget_state.select(Some(list_widget.selected));
+                            list_widget_state.select(Some(list_widget.get_selected(f.size())));
                             block_selected().title(list_widget_title.as_str())
                         }
                         _ => block_default().title(list_widget_title.as_str()),
