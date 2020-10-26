@@ -285,7 +285,7 @@ fn main() {
     }
 
     // print out the selected element = message var if not empty
-    // needs to be outside the scope so the variables
+    // needs to be outside the scope so the variables (particularly stdout) is dropped
     // prints to stderr for better usability (piping etc.)
     if !message.is_empty() {
         write!(stderr(), "{}\n", message).expect("Failed to write to stderr");

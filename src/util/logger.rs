@@ -9,8 +9,14 @@ pub struct FileLogger {
 }
 
 impl FileLogger {
-    pub const fn empty() -> Self {
+    pub fn empty() -> Self {
         Self { file: None }
+    }
+
+    pub fn new_with_file<S: ToString>(file_name: S) -> Self {
+        let mut logger = Self::empty();
+        logger.set_logfile(file_name);
+        logger
     }
 
     pub fn set_logfile<S: ToString>(&mut self, file_name: S) {
