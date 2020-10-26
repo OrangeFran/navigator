@@ -11,7 +11,7 @@ use tui::text::{Span, Spans, Text};
 use tui::layout::Rect;
 use tui::widgets::ListItem;
 
-const MAX_THREAD_AMOUNT: usize = 100;
+const MAX_THREAD_AMOUNT: usize = 1;
 
 // represents a selection
 // of all selctable widgets
@@ -601,7 +601,6 @@ impl ContentWidget {
         // 2. create a mutix for self.displayed
         // 3. assign each thread a chunk and run them
         // 4. wait for the threads to finish
-        let mut threads = 0;
         let amount_of_threads = current_folder.len() / MAX_THREAD_AMOUNT;
         // don't bother with threads if the length is under MAX_THREAD_AMOUNT
         if amount_of_threads == 0 {
@@ -629,7 +628,6 @@ impl ContentWidget {
             thread::spawn(move || {
                 tx_clone.send(filter_and_color(re_clone, list)).unwrap();
             });
-            threads += 1;
         }
 
         // spawn the last thread that includes
@@ -641,10 +639,9 @@ impl ContentWidget {
             ))
             .unwrap();
         });
-        threads += 1;
 
         // wait for the threads to finish
-        for _ in 0..threads {
+        for _ in 0..amount_of_threads {
             self.displayed
                 .append(&mut rx.recv().expect("Failed to receive from thread"));
         }
