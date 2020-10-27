@@ -64,7 +64,7 @@ fn main() {
     // if '--debug' was specified, add a file
     // so the logger actually outputs something
     if let Some(f) = matches.value_of("debug") {
-        logger.set_logfile(f);
+        logger = logger.set_logfile(f);
         logger.log("Logging!");
     }
 

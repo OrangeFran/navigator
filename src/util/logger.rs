@@ -13,22 +13,18 @@ impl FileLogger {
         Self { file: None }
     }
 
-    pub fn new_with_file<S: ToString>(file_name: S) -> Self {
-        let mut logger = Self::empty();
-        logger.set_logfile(file_name);
-        logger
-    }
-
-    pub fn set_logfile<S: ToString>(&mut self, file_name: S) {
+    pub fn set_logfile<S: ToString>(&self, file_name: S) -> Self {
         // only create new files
         // so you do not accidentally overwrite important files
-        self.file = Some(
-            OpenOptions::new()
-                .write(true)
-                .create_new(true)
-                .open(file_name.to_string())
-                .expect("Failed to open the file"),
-        );
+        Self {
+            file: Some(
+                OpenOptions::new()
+                    .write(true)
+                    .create_new(true)
+                    .open(file_name.to_string())
+                    .expect("Failed to open the file")
+            )
+        }
     }
 
     pub fn log<D: Display>(&mut self, msg: D) {
