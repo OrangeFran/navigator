@@ -79,6 +79,7 @@ impl ParagraphWidget for SearchWidget {
             format!(" {} Search ", prefix)
         }
     }
+
     fn display(&self, _lame: bool, _prefix: String) -> Text {
         // check if the regex is valid
         // if it's not -> bold red
@@ -126,6 +127,7 @@ impl ParagraphWidget for InfoWidget {
     fn get_title(&self, _lame: bool, _prefix: String) -> String {
         String::new()
     }
+
     fn display(&self, _lame: bool, _prefix: String) -> Text {
         Text::from(Span::raw(format!("{} ", self.count)))
     }
@@ -135,6 +137,7 @@ impl InfoWidget {
     pub fn new(count: usize) -> Self {
         Self { count }
     }
+    
     pub fn update(&mut self, new_count: usize) {
         self.count = new_count;
     }
@@ -163,8 +166,12 @@ pub struct ContentWidget {
 impl ListWidget for ContentWidget {
     // needs to be improved
     fn get_selected(&self, size: Rect) -> usize {
-        // let max_displayed = size.height as usize;
-        0
+        let max_displayed = size.height as usize;
+        if self.selected < max_displayed {
+            self.selected
+        } else {
+            max_displayed
+        }
     }
 
     fn get_title(&self, lame: bool, prefix: String) -> String {
@@ -189,18 +196,31 @@ impl ListWidget for ContentWidget {
             spans.extend(entry.spans.clone());
             ListItem::new(Text::from(Spans::from(spans)))
         };
+
         // only display the entries the user can look at
         // (this saves a lot of time with bigger vectors)
         // every line takes up a size of 3
         let max_displayed = size.height as usize;
-        if (self.displayed.len() - self.selected) > max_displayed {
-            let end = self.selected + max_displayed;
-            for entry in &self.displayed[self.selected..end] {
-                vec.push(create_list_item(entry));
+        if self.selected < max_displayed {
+            if max_displayed < self.displayed.len() {
+                for entry in &self.displayed[0..max_displayed] {
+                    vec.push(create_list_item(entry));
+                }
+            } else { 
+                for entry in &self.displayed[0..] {
+                    vec.push(create_list_item(entry));
+                }
             }
         } else {
-            for entry in &self.displayed[self.selected..] {
-                vec.push(create_list_item(entry));
+            let end = self.selected + max_displayed;
+            if end > self.displayed.len() {
+                for entry in &self.displayed[(self.selected - max_displayed)..] {
+                    vec.push(create_list_item(entry));
+                }
+            } else {
+                for entry in &self.displayed[self.selected..end] {
+                    vec.push(create_list_item(entry));
+                }
             }
         }
 
