@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env zsh
 
 # wrapper around the cli to overcome usability issues
 # because of the stdin/stdout redirecting and the terminal user interface
