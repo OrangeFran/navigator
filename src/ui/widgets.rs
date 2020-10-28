@@ -417,6 +417,9 @@ impl ContentWidget {
     }
 
     fn get_current_folder(&mut self) -> Vec<Entry> {
+        // they need to clone the actual values
+        // because self.displayed discards and colors certain
+        // entries, and these change need to be isolated (for .displayed only)
         match self.mode {
             DisplayMode::Structured => self.content.all[self.path[self.path.len() - 1].1].clone(),
             DisplayMode::FullPath => self.content.all_with_path.clone(),
@@ -505,7 +508,7 @@ impl ContentWidget {
     // - style chars that match the regex
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword;
-        let current_folder = self.get_current_folder();
+        let current_folder = self.get_current_folder(); // takes around 0.2 secs
         if self.search.is_empty() {
             self.displayed = current_folder;
             return;
@@ -516,7 +519,7 @@ impl ContentWidget {
             Err(_) => return,
         };
         self.selected = 0;
-        self.displayed = Vec::new(); // takes around 0.2 seconds
+        self.displayed = Vec::new(); // takes around 0.2 secs
         let filter_and_color = |re: Regex, list: Vec<Entry>| -> Vec<Entry> {
             let mut to_send = Vec::new();
             for mut entry in list {

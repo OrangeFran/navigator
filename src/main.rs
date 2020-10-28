@@ -229,6 +229,9 @@ fn main() {
                         Event::Key(Key::Char('p')) => {
                             content_widget.toggle_display_mode();
                             info_widget.update(content_widget.displayed.len());
+                            if content_widget.displayed.is_empty() {
+                                selected = Selectable::Search;
+                            }
                         }
                         // go to the top
                         Event::Key(Key::Char('g')) => {
