@@ -1,14 +1,14 @@
 use crate::util::FileLogger;
 
-use std::sync::Arc;
 use std::sync::mpsc;
+use std::sync::Arc;
 use std::thread;
 
 use regex::Regex;
 
+use tui::layout::Rect;
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans, Text};
-use tui::layout::Rect;
 use tui::widgets::ListItem;
 
 const MAX_THREAD_AMOUNT: usize = 20;
@@ -139,7 +139,7 @@ impl InfoWidget {
     pub fn new(count: usize) -> Self {
         Self { count }
     }
-    
+
     pub fn update(&mut self, new_count: usize) {
         self.count = new_count;
     }
@@ -159,16 +159,16 @@ pub struct Content {
 
 pub struct ContentWidget {
     pub content: Arc<Content>,
-    pub displayed: Vec<Entry>,      // Stores the currently displayed items
-    pub selected: usize,            // Represents the currently selected element
-    path: Vec<(String, usize)>,     // Usize is equal to the index of self.all
-    search: String,                 // Store the search keywords (get used in .display)
+    pub displayed: Vec<Entry>,  // Stores the currently displayed items
+    pub selected: usize,        // Represents the currently selected element
+    path: Vec<(String, usize)>, // Usize is equal to the index of self.all
+    search: String,             // Store the search keywords (get used in .display)
     mode: DisplayMode,
     logger: FileLogger,
 }
 
 impl ListWidget for ContentWidget {
-    // TODO: Improve 
+    // TODO: Improve
     fn get_selected(&self, size: Rect) -> usize {
         let max_displayed = size.height as usize;
         if self.selected < max_displayed {
@@ -210,7 +210,7 @@ impl ListWidget for ContentWidget {
                 for entry in &self.displayed[0..max_displayed] {
                     vec.push(create_list_item(entry));
                 }
-            } else { 
+            } else {
                 for entry in &self.displayed[0..] {
                     vec.push(create_list_item(entry));
                 }
@@ -252,19 +252,15 @@ impl ContentWidget {
 
         // Store the big chunks on the heap
         // because they are from now on immutable
-        let temp = Arc::new(
-            Content { 
-                all: all.clone(), 
-                all_with_path: Vec::new(),  
-            }
-        );
+        let temp = Arc::new(Content {
+            all: all.clone(),
+            all_with_path: Vec::new(),
+        });
 
-        let arc = Arc::new(
-            Content {
-                all: all,
-                all_with_path: Self::get_all_displayed_path(temp),
-            }
-        );
+        let arc = Arc::new(Content {
+            all: all,
+            all_with_path: Self::get_all_displayed_path(temp),
+        });
 
         Self {
             content: Arc::clone(&arc),
@@ -484,7 +480,12 @@ impl ContentWidget {
         let mut vec = Vec::new();
         for entry in &content.all[0] {
             Self::recursive_travel_entry(
-                Arc::clone(&content), &mut vec, String::new(), Vec::new(), Vec::new(), entry.clone()
+                Arc::clone(&content),
+                &mut vec,
+                String::new(),
+                Vec::new(),
+                Vec::new(),
+                entry.clone(),
             )
         }
         vec
@@ -648,7 +649,7 @@ impl ContentWidget {
         // because most of the time the amount of entries isn't a
         // multiple of 'amount_of_threads'
         for i in 0..(amount_of_threads - 1) {
-            // Needs clones to be 
+            // Needs clones to be
             // moved to it's own 'process'
             let tx_clone = tx.clone();
             let re_clone = re.clone();

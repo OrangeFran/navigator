@@ -2,9 +2,9 @@
 // if "cargo test" was run
 #[cfg(test)]
 mod test {
-    use crate::util::FileLogger;
     use crate::ui::ContentWidget;
     use crate::ui::Entry;
+    use crate::util::FileLogger;
 
     // Tests that ensure that the from_string 'algorithm' works.
     // "cargo test" will run everytime I changed something in from_string or ContentWidget
@@ -20,7 +20,8 @@ mod test {
     impl ContentWidget {
         // Makes testing easier
         pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
-            self.content.all
+            self.content
+                .all
                 .iter()
                 .map(|v| {
                     v.iter()

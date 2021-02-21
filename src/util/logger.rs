@@ -22,8 +22,8 @@ impl FileLogger {
                     .write(true)
                     .create_new(true)
                     .open(file_name.to_string())
-                    .expect("Failed to open the file")
-            )
+                    .expect("Failed to open the file"),
+            ),
         }
     }
 
