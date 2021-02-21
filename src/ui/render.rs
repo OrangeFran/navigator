@@ -9,8 +9,8 @@ use tui::layout::{Alignment, Constraint, Direction, Layout};
 use tui::style::{Color, Modifier, Style};
 use tui::widgets::{Block, Borders, List, ListState, Paragraph, Wrap};
 
-// draws the layout to the terminal
-// this function gets called everytime something changes
+// Draws the layout to the terminal
+// This function gets called everytime something changes
 // so everything gets redrawn
 pub fn draw<B: Backend>(
     terminal: &mut Terminal<B>,
@@ -20,10 +20,10 @@ pub fn draw<B: Backend>(
     selected: &Selectable,
     config: &config::Config,
 ) {
-    // create default values with the
+    // Create default values with the
     // priveded configurations in the Config struct
 
-    // create an rgb color out of an array
+    // Create an rgb color out of an array
     let color_rgb = |arr: config::Color| {
         if let Some(af) = arr.fg {
             if let Some(ab) = arr.bg {
@@ -55,21 +55,21 @@ pub fn draw<B: Backend>(
 
     terminal
         .draw(|f| {
-            // the search bar will take up 10%
-            // the rest goes to the list view
+            // The search bar will take up 10%
+            // The rest goes to the list view
             let chunks = Layout::default()
                 .direction(Direction::Vertical)
                 .margin(0)
                 .constraints([Constraint::Length(3), Constraint::Percentage(90)].as_ref())
                 .split(f.size());
-            // chunk used indirectly to create info_chunk
+            // Chunk used indirectly to create info_chunk
             let info_chunk = Layout::default()
                 .direction(Direction::Horizontal)
                 .margin(0)
                 .constraints([Constraint::Min(10), Constraint::Length(10)].as_ref())
                 .split(chunks[0]);
 
-            // the search bar
+            // The search bar
             let search_widget_content = search_widget.display(config.lame, String::new());
             let search_widget_title =
                 search_widget.get_title(config.lame, config.prefixes.search.clone());
@@ -84,7 +84,7 @@ pub fn draw<B: Backend>(
                 .alignment(Alignment::Left)
                 .wrap(Wrap { trim: false });
 
-            // the info widget
+            // The info widget
             let info_widget_content = info_widget.display(config.lame, String::new());
             let info_widget_paragraph = Paragraph::new(info_widget_content)
                 .block(block_default())
@@ -92,7 +92,7 @@ pub fn draw<B: Backend>(
                 .alignment(Alignment::Right)
                 .wrap(Wrap { trim: false });
 
-            // the scrollable list view
+            // The scrollable list view
             let mut list_widget_state = ListState::default();
             let list_widget_content =
                 list_widget.display(f.size(), config.lame, config.prefixes.folder.clone());
@@ -111,7 +111,7 @@ pub fn draw<B: Backend>(
                 .highlight_style(Style::default().add_modifier(Modifier::BOLD))
                 .highlight_symbol(config.selector.as_str());
 
-            // render all the widgets
+            // Render all the widgets
             f.render_widget(search_widget_paragraph.clone(), info_chunk[0]);
             f.render_widget(info_widget_paragraph.clone(), info_chunk[1]);
             f.render_stateful_widget(list_widget_list.clone(), chunks[1], &mut list_widget_state);

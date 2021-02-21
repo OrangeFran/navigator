@@ -1,4 +1,4 @@
-// this only compiles
+// This only compiles
 // if "cargo test" was run
 #[cfg(test)]
 mod test {
@@ -6,11 +6,11 @@ mod test {
     use crate::ui::ContentWidget;
     use crate::ui::Entry;
 
-    // tests that ensure that the from_string 'algorithm' works.
+    // Tests that ensure that the from_string 'algorithm' works.
     // "cargo test" will run everytime I changed something in from_string or ContentWidget
     // to ensure stability.
     impl Entry {
-        // converts and Entry to a tuple
+        // Converts an Entry to a tuple
         // reverted ::new method
         pub fn revert(&self) -> (String, Option<usize>) {
             (self.name.clone(), self.next)
@@ -18,7 +18,7 @@ mod test {
     }
 
     impl ContentWidget {
-        // makes testing easier
+        // Makes testing easier
         pub fn get_all_reverted(&self) -> Vec<Vec<(String, Option<usize>)>> {
             self.content.all
                 .iter()
@@ -31,8 +31,8 @@ mod test {
         }
     }
 
-    // functions to create elements for a vector
-    // make writing tests a whole less verbose
+    // Functions to create elements for a vector
+    // Make writing tests a whole less verbose
     fn single() -> (String, Option<usize>) {
         (String::from("Single"), None)
     }
@@ -67,7 +67,7 @@ mod test {
         let logger = FileLogger::empty();
         let input = String::from("Single\nFolder\n\tSingle\n\tFolder\n\t\tFolder\n\t\t\tSingle\n\tFolder\n\t\tSingle\nSingle");
         let seperator = String::from("\t");
-        // sorry, it's a little long, hope you can read it
+        // Sorry, it's a little long, hope you can read it
         assert_eq!(
             ContentWidget::from_string(input, seperator, logger).get_all_reverted(),
             vec![
@@ -85,7 +85,7 @@ mod test {
         let logger = FileLogger::empty();
         let input = String::from("Single\nFolder\ntabSingle\ntabFolder\ntabtabFolder\ntabtabtabSingle\ntabFolder\ntabtabSingle\nSingle");
         let seperator = String::from("tab");
-        // sorry, it's a little long, hope you can read it
+        // Sorry, it's a little long, hope you can read it
         assert_eq!(
             ContentWidget::from_string(input, seperator, logger).get_all_reverted(),
             vec![

@@ -18,7 +18,7 @@ use tui::backend::TermionBackend;
 use tui::terminal::Terminal;
 
 fn main() {
-    // setup the cli app
+    // Setup the cli app
     let matches = App::new("navigator")
         .version("0.1")
         .author("Finn H.")
@@ -61,21 +61,21 @@ fn main() {
         .get_matches();
 
     let mut logger = FileLogger::empty();
-    // if '--debug' was specified, add a file
+    // If '--debug' was specified, add a file
     // so the logger actually outputs something
     if let Some(f) = matches.value_of("debug") {
         logger = logger.set_logfile(f);
         logger.log("Logging!");
     }
 
-    // look for boolean flags and save the state
+    // Look for boolean flags and save the state
     // in a variable for easier access
     let lame = matches.is_present("lame");
     let full_path = matches.is_present("full-path");
 
-    // get the string, which should be processed
-    // try to use INTPUT if defined
-    // else, read from the standard input
+    // Get the string, which should be processed
+    // Try to use INTPUT if defined
+    // else read from the standard input
     let mut input = String::new();
     if let Some(r) = matches.value_of("INPUT") {
         input = r.to_string();
@@ -87,7 +87,7 @@ fn main() {
         input.remove(input.len() - 1);
     }
 
-    // open input file and read to string
+    // Open input file and read to string
     // or try the default one (~/.config/navigator/config.toml)
     let mut config = String::new();
     if let Some(c) = matches.value_of("config") {
@@ -103,28 +103,28 @@ fn main() {
         }
     }
 
-    // config::read_config returns default values if the string is empty
+    // Config::read_config returns default values if the string is empty
     // and takes additional vlaues which can be configured at runtime
-    // these can be also defined in the config file, but could get overwritten
+    // These can be also defined in the config file, but could get overwritten
     let config = ui::read_config(config.as_str(), lame);
 
-    // check if a seperator was provided
+    // Check if a seperator was provided
     // else fall back to \t (tab)
     let separator = matches.value_of("separator").unwrap_or("\t").to_string();
 
-    // message that get's outputted
-    // gets filled inside the for loop
+    // Message that get's outputted
+    // Gets filled inside the for loop
     let mut message = String::new();
 
-    // i'm too stupid to deinitalize the stdout grabber
+    // I'm too stupid to deinitalize the stdout grabber
     // that termion creates so I put that stuff into brackets
     // so it deinitializes it automatically
     {
-        // use tty instead of stdin
+        // Use tty instead of stdin
         // because stdin could be blocked by the user input
         let tty = termion::get_tty().expect("Could not find tty!");
 
-        // set up the terminal -> into raw mode
+        // Set up the terminal -> into raw mode
         let raw = stdout()
             .into_raw_mode()
             .expect("Failed to put the terminal into raw mode");
@@ -139,7 +139,7 @@ fn main() {
         let mut content_widget = ContentWidget::from_string(input, separator, logger);
         let mut info_widget = InfoWidget::new(content_widget.displayed.len());
 
-        // draw the layout for the first time
+        // Draw the layout for the first time
         ui::draw(
             &mut terminal,
             &content_widget,
@@ -149,9 +149,9 @@ fn main() {
             &config,
         );
 
-        // start listening
+        // Start listening
         for event in tty.events() {
-            // if the program failed
+            // If the program failed
             // to get the event, just continue
             if event.is_err() {
                 continue;
@@ -160,10 +160,10 @@ fn main() {
             match selected {
                 Selectable::Search => {
                     match event.unwrap() {
-                        // must go befor Key::Char(c)
-                        // switch back while keeping the search
+                        // Must go before Key::Char(c)
+                        // Switch back while keeping the search
                         //
-                        // only possible if something was found
+                        // Only possible if something was found
                         // else block the switch (the user can escape with esc or search for
                         // something different)
                         Event::Key(Key::Char('\n')) => {
@@ -171,19 +171,19 @@ fn main() {
                                 selected = Selectable::List;
                             }
                         }
-                        // add the char to the search
+                        // Add the char to the search
                         Event::Key(Key::Char(c)) => {
                             search_widget.add(c);
                             content_widget.apply_search(search_widget.get_content());
                             info_widget.update(content_widget.displayed.len());
                         }
-                        // remove the last char from the search
+                        // Remove the last char from the search
                         Event::Key(Key::Backspace) => {
                             search_widget.pop();
                             content_widget.apply_search(search_widget.get_content());
                             info_widget.update(content_widget.displayed.len());
                         }
-                        // switch back to the list view
+                        // Switch back to the list view
                         // do not keep the search
                         Event::Key(Key::Esc) => {
                             selected = Selectable::List;
@@ -249,7 +249,7 @@ fn main() {
                         Event::Key(Key::Char('\n')) => {
                             terminal.clear().expect("Failed to clear the terminal");
                             if full_path {
-                                // the slash between is not necessary because it's provided by the
+                                // The slash between is not necessary because it's provided by the
                                 // .get_path method
                                 message.push_str(
                                     format!(
@@ -264,7 +264,7 @@ fn main() {
                             }
                             break;
                         }
-                        // quit the program
+                        // Quit the program
                         Event::Key(Key::Char('q')) => {
                             terminal.clear().expect("Failed to clear the terminal");
                             break;
@@ -275,7 +275,7 @@ fn main() {
                 }
             }
 
-            // update the tui
+            // Update the tui
             ui::draw(
                 &mut terminal,
                 &content_widget,
@@ -287,9 +287,9 @@ fn main() {
         }
     }
 
-    // print out the selected element = message var if not empty
-    // needs to be outside the scope so the variables (particularly stdout) is dropped
-    // prints to stderr for better usability (piping etc.)
+    // Print out the selected element = message var if not empty
+    // Needs to be outside the scope so the variables (particularly stdout) is dropped
+    // Prints to stderr for better usability (piping etc.)
     if !message.is_empty() {
         write!(stderr(), "{}\n", message).expect("Failed to write to stderr");
     }

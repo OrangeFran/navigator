@@ -27,7 +27,7 @@ use serde_derive::Deserialize;
 //     selector: Option<String>
 // }
 
-// create a non optional struct
+// Create a non optional struct
 // with default/user configuration options
 #[derive(Deserialize, Clone)]
 pub struct Color {
@@ -35,7 +35,7 @@ pub struct Color {
     pub bg: Option<[u8; 3]>,
 }
 
-// a prefix (in front of the titles)
+// A prefix (in front of the titles)
 #[derive(Deserialize, Clone)]
 pub struct Prefix {
     pub search: String,
@@ -57,10 +57,10 @@ pub struct Config {
     pub lame: bool,
 }
 
-// takes the content of the config file / or an empty string
+// Takes the content of the config file / or an empty string
 // + addition values passed in at runtime
 pub fn read_config(string: &str, lame: bool) -> Config {
-    // return the default if string is empty
+    // Return the default if string is empty
     let mut config = if !string.is_empty() {
         toml::from_str::<Config>(string).expect("Failed to parse toml")
     } else {
@@ -82,7 +82,7 @@ pub fn read_config(string: &str, lame: bool) -> Config {
         }
     };
 
-    // fill in the additional values
+    // Fill in the additional values
     if lame {
         config.lame = lame;
     }

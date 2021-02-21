@@ -13,30 +13,30 @@ use tui::widgets::ListItem;
 
 const MAX_THREAD_AMOUNT: usize = 20;
 
-// represents a selection
+// Represents a selection
 // of all selctable widgets
 pub enum Selectable {
     Search,
     List,
 }
 
-// this needs to be implemented by all paragraph widgets
+// This needs to be implemented by all paragraph widgets
 pub trait ParagraphWidget {
     fn get_title(&self, lame: bool, prefix: String) -> String;
     fn display(&self, lame: bool, prefix: String) -> Text;
 }
 
-// this needs to be implemented by all list widgets
+// This needs to be implemented by all list widgets
 pub trait ListWidget {
     fn get_selected(&self, size: Rect) -> usize;
     fn get_title(&self, lame: bool, prefix: String) -> String;
     fn display(&self, size: Rect, lame: bool, prefix: String) -> Vec<ListItem>;
 }
 
-// a default entry with a name
+// A default entry with a name
 // and an option for a subdirectory
 //
-// the options holds a number which refers
+// The options holds a number which refers
 // to the index where it it stored
 #[derive(Clone, Debug)]
 pub struct Entry {
@@ -50,7 +50,7 @@ impl Entry {
     pub fn new(name: String, next: Option<usize>, spans: Option<Vec<Span<'static>>>) -> Self {
         Self {
             name: name.clone(),
-            // just the default for now,
+            // Just the default for now,
             // gets changed anyway if necessary
             spans: spans.unwrap_or(vec![Span::from(name)]),
             next: next,
@@ -59,7 +59,7 @@ impl Entry {
     }
 }
 
-// needed by the ContentWidget to
+// Needed by the ContentWidget to
 // represent scrolling directions
 // for better readability.
 pub enum Direction {
@@ -68,7 +68,8 @@ pub enum Direction {
 }
 
 pub struct SearchWidget {
-    pub content: String, // represents the inputted chars
+    // Represents the inputted chars
+    pub content: String,
 }
 
 impl ParagraphWidget for SearchWidget {
@@ -81,8 +82,8 @@ impl ParagraphWidget for SearchWidget {
     }
 
     fn display(&self, _lame: bool, _prefix: String) -> Text {
-        // check if the regex is valid
-        // if it's not -> bold red
+        // Check if the regex is valid
+        // If it's not -> bold red
         if Regex::new(self.content.as_str()).is_err() {
             let spans = Spans::from(vec![Span::styled(
                 self.content.clone(),
@@ -120,7 +121,8 @@ impl SearchWidget {
 }
 
 pub struct InfoWidget {
-    pub count: usize, // amount of elements in folder
+    // Amount of elements in folder
+    pub count: usize,
 }
 
 impl ParagraphWidget for InfoWidget {
@@ -149,22 +151,24 @@ enum DisplayMode {
 }
 
 pub struct Content {
-    pub all: Vec<Vec<Entry>>,       // represents all elements
-    pub all_with_path: Vec<Entry>,  // this saves a lot of time and resources
+    // Represents all elements
+    pub all: Vec<Vec<Entry>>,
+    // This saves a lot of time and resources
+    pub all_with_path: Vec<Entry>,
 }
 
 pub struct ContentWidget {
     pub content: Arc<Content>,
-    pub displayed: Vec<Entry>,      // stores the currently displayed items
-    pub selected: usize,            // represents the currently selected element
-    path: Vec<(String, usize)>,     // usize is equal to the index of self.all
-    search: String,                 // store the search keywords (get used in .display)
+    pub displayed: Vec<Entry>,      // Stores the currently displayed items
+    pub selected: usize,            // Represents the currently selected element
+    path: Vec<(String, usize)>,     // Usize is equal to the index of self.all
+    search: String,                 // Store the search keywords (get used in .display)
     mode: DisplayMode,
     logger: FileLogger,
 }
 
 impl ListWidget for ContentWidget {
-    // needs to be improved
+    // TODO: Improve 
     fn get_selected(&self, size: Rect) -> usize {
         let max_displayed = size.height as usize;
         if self.selected < max_displayed {
@@ -197,9 +201,9 @@ impl ListWidget for ContentWidget {
             ListItem::new(Text::from(Spans::from(spans)))
         };
 
-        // only display the entries the user can look at
+        // Only display the entries the user can look at
         // (this saves a lot of time with bigger vectors)
-        // every line takes up a size of 3
+        // Every line takes up a size of 3
         let max_displayed = size.height as usize;
         if self.selected < max_displayed {
             if max_displayed < self.displayed.len() {
@@ -224,7 +228,7 @@ impl ListWidget for ContentWidget {
             }
         }
 
-        // if the vector is empty
+        // If the vector is empty
         // add an informative text
         if vec.is_empty() {
             if lame {
@@ -238,15 +242,15 @@ impl ListWidget for ContentWidget {
 }
 
 impl ContentWidget {
-    // simply populate a basic
+    // Simply populate a basic
     // ContentWidget with default values
     pub fn new(all: Vec<Vec<Entry>>, logger: FileLogger) -> Self {
-        // abort if v has no entries
+        // Abort if v has no entries
         if all.is_empty() {
             panic!("no content");
         }
 
-        // store the big chunks on the heap
+        // Store the big chunks on the heap
         // because they are from now on immutable
         let temp = Arc::new(
             Content { 
@@ -273,14 +277,14 @@ impl ContentWidget {
         }
     }
 
-    // converts the given string to a ContentWidget
+    // Converts the given string to a ContentWidget
     // this is probably the holy method, that makes this project something usable
     pub fn from_string(string: String, sep: String, logger: FileLogger) -> Self {
-        // first, try with \t
-        // custom seperators are coming
+        // First, try with \t
+        // Custom seperators are coming
         let mut tuple_vec: Vec<Vec<Entry>> = vec![vec![]];
 
-        // checks for identifiers and returns how many it found
+        // Checks for identifiers and returns how many it found
         let find_identifiers = |mut line: String| -> usize {
             let mut count = 0;
             loop {
@@ -293,12 +297,12 @@ impl ContentWidget {
             }
         };
 
-        // stores the path in indexes to the current index
+        // Stores the path in indexes to the current index
         // so the code can jump back into previous folders
         let mut path = Vec::new();
-        // stores the current index
+        // Stores the current index
         let mut current = 0;
-        // used to compare identifiers
+        // Used to compare identifiers
         let (mut count_idents_current, mut count_idents_next) = (0, 0);
         let mut splitted_string = string.split('\n');
         let mut current_line: String;
@@ -308,7 +312,7 @@ impl ContentWidget {
         };
 
         loop {
-            // assign the already processed next_line
+            // Assign the already processed next_line
             // to the current_line and handle it with the
             // updated next_line
             current_line = next_line.clone();
@@ -320,29 +324,29 @@ impl ContentWidget {
                 }
             };
 
-            // check if it starts with \t
+            // Check if it starts with \t
             // and with how many \t's and removes the automatically
             count_idents_current = count_idents_next;
             count_idents_next = find_identifiers(next_line.clone());
 
             next_line = next_line.replace(&sep, "");
 
-            // entry has a new subdirectory
+            // Entry has a new subdirectory
             match count_idents_next {
-                // new subdirectory
+                // New subdirectory
                 c if c > count_idents_current => {
-                    // add a new subdirectory and save the index
+                    // Add a new subdirectory and save the index
                     // as Some(index) in the current vectory
                     tuple_vec.push(Vec::new());
                     let new_index = &tuple_vec.len() - 1;
                     tuple_vec[current].push(Entry::new(current_line, Some(new_index), None));
 
-                    // store information to find back
+                    // Store information to find back
                     path.push(current);
-                    // enter the subdirectory
+                    // Enter the subdirectory
                     current = new_index;
                 }
-                // directory gets closed
+                // Directory gets closed
                 c if c < count_idents_current => {
                     tuple_vec[current].push(Entry::new(current_line, None, None));
                     let difference = count_idents_current - count_idents_next;
@@ -353,7 +357,7 @@ impl ContentWidget {
                         path.pop();
                     }
                 }
-                // in the same directory
+                // In the same directory
                 _ => tuple_vec[current].push(Entry::new(current_line, None, None)),
             }
         }
@@ -361,48 +365,48 @@ impl ContentWidget {
         Self::new(tuple_vec, logger)
     }
 
-    // expand -> enter a folder
+    // Expand -> enter a folder
     pub fn expand(&mut self) {
         if let DisplayMode::Structured = self.mode {
-            // check if the element is actually expandable
+            // Check if the element is actually expandable
             let current_element = self.displayed[self.selected].clone();
             if let Some(new) = current_element.next {
-                // update .path
+                // Update .path
                 self.path.push((current_element.name, new));
-                // set the selected one to 0
+                // Set the selected one to 0
                 // to prevent index errors
                 self.selected = 0;
             }
-            // update the .displayed
+            // Update the .displayed
             self.apply_search(self.search.clone());
         }
     }
 
-    // the opposite to expand
+    // The opposite to expand
     pub fn back(&mut self) {
         if let DisplayMode::Structured = self.mode {
-            // remove the last element from path
+            // Remove the last element from path
             // and update .selected
             if self.path.len() != 1 {
                 self.path.pop();
                 self.selected = 0;
             }
-            // update the .displayed
+            // Update the .displayed
             self.apply_search(self.search.clone());
         }
     }
 
-    // scroll up/down
+    // Scroll up/down
     pub fn scroll(&mut self, direction: Direction) {
         match direction {
-            // scroll up, and if
+            // Scroll up, and if
             // your're already at the top, nothing happends
             Direction::Up => {
                 if self.selected > 0 {
                     self.selected -= 1;
                 }
             }
-            // scroll up, and
+            // Scroll up, and
             // if your're already at the bottom, nothing happens
             Direction::Down => {
                 if self.selected < self.displayed.len() - 1 {
@@ -417,7 +421,7 @@ impl ContentWidget {
     }
 
     fn get_current_folder(&mut self) -> Vec<Entry> {
-        // they need to clone the actual values
+        // They need to clone the actual values
         // because self.displayed discards and colors certain
         // entries, and these change need to be isolated (for .displayed only)
         match self.mode {
@@ -434,7 +438,7 @@ impl ContentWidget {
         output
     }
 
-    // recursively go through one Entry and his children (.next elements)
+    // Recursively go through one Entry and his children (.next elements)
     // used in conjunction with toggle_path_display_mode
     fn recursive_travel_entry(
         content: Arc<Content>,
@@ -444,23 +448,23 @@ impl ContentWidget {
         mut special: Vec<(usize, Color)>,
         entry: Entry,
     ) {
-        // create a new entry with no child
+        // Create a new entry with no child
         path.push_str(&entry.name);
         spans.push(Span::from(entry.name.clone()));
         let mut to_add = Entry::new(path.clone(), None, Some(spans.clone()));
         to_add.special = special.clone();
         vec.push(to_add.clone());
-        // check if subelements exist
+        // Check if subelements exist
         if let Some(p) = entry.next {
+            // Add a colored (red) seperator
+            // Update the .displayed
             path.push('/');
             special.push((to_add.name.len(), Color::Red));
             spans.push(Span::styled("/", Style::default().fg(Color::Red)));
-            // and add a colored (red) seperator
-            // update the .displayed
             // reapply the search
             // self.apply_search(self.search.clone());
             for entry in &content.all[p] {
-                // call the function again for each subelements (recursion)
+                // Call the function again for each subelements (recursion)
                 Self::recursive_travel_entry(
                     Arc::clone(&content),
                     vec,
@@ -473,8 +477,8 @@ impl ContentWidget {
         }
     }
 
-    // adds all elements with their full path as a string
-    // starts from the folder the user is currently in
+    // Adds all elements with their full path as a string
+    // Starts from the folder the user is currently in
     // to the selected elements -> path search
     fn get_all_displayed_path(content: Arc<Content>) -> Vec<Entry> {
         let mut vec = Vec::new();
@@ -486,12 +490,12 @@ impl ContentWidget {
         vec
     }
 
-    // switch modes and update .displayed
+    // Switch modes and update .displayed
     pub fn toggle_display_mode(&mut self) {
         match self.mode {
             DisplayMode::Structured => {
                 self.mode = DisplayMode::FullPath;
-                // you don't see this at first look but
+                // You don't see this at first look but
                 // apply_search actually automatically takes from
                 // all_with_path if we change the mode
                 self.apply_search(self.search.clone());
@@ -503,34 +507,34 @@ impl ContentWidget {
         }
     }
 
-    // - update .search field
-    // - filter all the items
-    // - style chars that match the regex
+    // 1. Update .search field
+    // 2. Filter all the items
+    // 3. Style chars that match the regex
     pub fn apply_search(&mut self, keyword: String) {
         self.search = keyword;
-        let current_folder = self.get_current_folder(); // takes around 0.2 secs
+        let current_folder = self.get_current_folder(); // Takes around 0.2 secs
         if self.search.is_empty() {
             self.displayed = current_folder;
             return;
         }
-        // if the regex failed, do nothing
+        // If the regex failed, do nothing
         let re = match Regex::new(&self.search) {
             Ok(r) => r,
             Err(_) => return,
         };
         self.selected = 0;
-        self.displayed = Vec::new(); // takes around 0.2 secs
+        self.displayed = Vec::new(); // Takes around 0.2 secs
         let filter_and_color = |re: Regex, list: Vec<Entry>| -> Vec<Entry> {
             let mut to_send = Vec::new();
             for mut entry in list {
-                // find out if they match
+                // Find out if they match
                 if re.is_match(&entry.name) {
-                    // color the regex statements
+                    // Color the regex statements
                     let mut index_before = 0;
                     entry.spans = Vec::new();
                     for mat in re.find_iter(&entry.name) {
-                        // add the string (not styled) up until the mathing chars
-                        // all these if statement and loops check if there is a special
+                        // Add the string (not styled) up until the mathing chars
+                        // All these if statement and loops check if there is a special
                         // character that should be colored differently (these are mostly
                         // '/' and seperate two entries in the DisplayMode::FullPath)
                         if index_before != mat.start() {
@@ -556,7 +560,7 @@ impl ContentWidget {
                             }
                             index_before = mat.start();
                         }
-                        // add the matching chars styled
+                        // Add the matching chars styled
                         for (ind, color) in &entry.special {
                             if ind > &index_before && ind < &mat.end() {
                                 entry.spans.push(Span::styled(
@@ -582,7 +586,7 @@ impl ContentWidget {
                         }
                         index_before = mat.end();
                     }
-                    // add the rest of the chars (not styled)
+                    // Add the rest of the chars (not styled)
                     for (ind, color) in &entry.special {
                         if ind > &index_before && ind < &entry.name.len() {
                             entry.spans.push(Span::from(
@@ -608,7 +612,7 @@ impl ContentWidget {
                                 .to_string(),
                         ));
                     }
-                    // finally push it to the displayed vector
+                    // Finally push it to the displayed vector
                     // which holds all entries that should get displayed to the user
                     to_send.push(entry);
                 }
@@ -616,22 +620,22 @@ impl ContentWidget {
             to_send
         };
 
-        // create multiple threads for each chunk
+        // Create multiple threads for each chunk
         // to speed this whole thing up
-        // STEPS:
-        // 1. create max MAX_THREAD_AMOUNT chunks for max MAX_THREAD_AMOUNT threads
-        //      - each chunk should cotain more than MAX_THREAD_AMOUNT entries
-        // 2. create a mutix for self.displayed
-        // 3. assign each thread a chunk and run them
-        // 4. wait for the threads to finish
+        //
+        // 1. Create max MAX_THREAD_AMOUNT chunks for max MAX_THREAD_AMOUNT threads
+        //    Each chunk should cotain more than MAX_THREAD_AMOUNT entries
+        // 2. Create a mutix for self.displayed
+        // 3. Assign each thread a chunk and run them
+        // 4. Wait for the threads to finish
         let amount_of_threads = current_folder.len() / MAX_THREAD_AMOUNT;
-        // don't bother with threads if the length is under MAX_THREAD_AMOUNT
+        // Don't bother with threads if the length is under MAX_THREAD_AMOUNT
         if amount_of_threads == 0 {
             self.displayed = filter_and_color(re, current_folder);
             return;
         }
-        // reduce the amount to MAX_THREAD_AMOUNT
-        // if it is bigger than MAX_THREAD_AMOUNT
+        // Reduce the amount to MAX_THREAD_AMOUNT
+        // If it is bigger than MAX_THREAD_AMOUNT
         let amount_of_threads = if amount_of_threads > MAX_THREAD_AMOUNT {
             MAX_THREAD_AMOUNT
         } else {
@@ -640,11 +644,11 @@ impl ContentWidget {
         let amount_of_entries = current_folder.len() / amount_of_threads;
         let (tx, rx) = mpsc::channel();
 
-        // the last thread will include the rest of the entries
+        // The last thread will include the rest of the entries
         // because most of the time the amount of entries isn't a
         // multiple of 'amount_of_threads'
         for i in 0..(amount_of_threads - 1) {
-            // needs clones to be 
+            // Needs clones to be 
             // moved to it's own 'process'
             let tx_clone = tx.clone();
             let re_clone = re.clone();
@@ -655,7 +659,7 @@ impl ContentWidget {
             });
         }
 
-        // spawn the last thread that includes
+        // Spawn the last thread that includes
         // the rest of the entries
         thread::spawn(move || {
             tx.send(filter_and_color(
@@ -665,7 +669,7 @@ impl ContentWidget {
             .unwrap();
         });
 
-        // wait for the threads to finish
+        // Wait for the threads to finish
         for _ in 0..amount_of_threads {
             self.displayed
                 .append(&mut rx.recv().expect("Failed to receive from thread"));
