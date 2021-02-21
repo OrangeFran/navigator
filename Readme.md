@@ -1,5 +1,5 @@
 # Navigator
-### Look at output with ease
+### A simple fuzzy finder written in rust
 
 ![emoji selection with navigator](preview/emojis.gif)
 A small script which can be found at `examples/emojis.sh` to copy an emoji to the clipboard.
