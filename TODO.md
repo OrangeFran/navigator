@@ -12,6 +12,8 @@
 
 ### Plans
 
+- [ ] Improve error handling (maybe use the `anyhow` create?)
+
 - [x] Add live search. It updates while searching so you find your stuff better.
 - [x] Allow searching with regex.
 
