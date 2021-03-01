@@ -61,10 +61,10 @@ echo "test" | navigator 2> | less
 
 Look at some examples in the `examples/` folder to learn more and get some ideas of possible usages.
 
-There are some flags you can use. Access the help menu with `--help`.  It's pretty basic for now.
+There are some flags you can use. Access the help menu with `--help`. It's pretty basic for now.
 You can pass in a string to process or read from standard input.
 
-After the string is read, it get's parsed into a list of folders and files.  By default it
+After the string is read, it get's parsed into a list of folders and files. By default it
 seperatres folders and subfolders with a tab.
 
 ```
@@ -76,18 +76,17 @@ folder
 file
 ```
 
-You can even use nested folder. It should all work.  There are also some tests that prove it. Run
-`cargo test` for that.  If there are errors, please open an issue.
+You can even use nested folder. If there are errors, please open an issue.
 
 You can specify a custom seperator with `-s` or `--sep`.  By default it's a tab (`\t`) as mentioned
 above.
 
-This tool is mostly built for people who want to script stuff.  But you can sure use it for
-everything you want to.  If you'd like to share a cool script, you can make a pull request.
+This tool is mostly built for people who want to script stuff. But you can sure use it for
+everything you want to. If you'd like to share a cool script, you can make a pull request.
 
 ### Shortcuts
 
-Navigator is a terminal-user-interface, so it relies on shortcuts.  But it's a simple tool, so there
+Navigator is a terminal-user-interface, so it relies on shortcuts. But it's a simple tool, so there
 is no need to panic. If you know vim, you're probably good to go.
 
 Here's a list:
