@@ -22,15 +22,15 @@ fn main() {
     let matches = App::new("navigator")
         .version("0.1")
         .author("Finn H.")
-        .about("Look at output with ease!")
-        .arg(Arg::with_name("INPUT").help("Specify input, reads from stdin if none"))
+        .about("A simply tui-based fuzzy finder")
+        .arg(Arg::with_name("INPUT").help("Specifies input string (reads from stdin by default)"))
         .arg(
             Arg::with_name("separator")
                 .short("s")
                 .long("separator")
                 .value_name("SEPARATOR")
                 .takes_value(true)
-                .help("Separate level with SEPARATOR"),
+                .help("Separates level with SEPARATOR"),
         )
         .arg(
             Arg::with_name("config")
@@ -38,25 +38,25 @@ fn main() {
                 .long("config")
                 .value_name("FILE")
                 .takes_value(true)
-                .help("Use configurations from FILE"),
+                .help("Uses the configuration from FILE"),
         )
         .arg(
             Arg::with_name("full-path")
                 .long("full-path")
-                .help("Return the full path of the item"),
+                .help("Returns the full path of the selected item"),
         )
         .arg(
             Arg::with_name("lame")
                 .short("l")
                 .long("lame")
-                .help("Hide emojis"),
+                .help("Hides emojis"),
         )
         .arg(
             Arg::with_name("debug")
                 .long("debug")
                 .value_name("FILE")
                 .takes_value(true)
-                .help("Send debugging information to FILE"),
+                .help("Sends debugging information to FILE"),
         )
         .get_matches();
 
